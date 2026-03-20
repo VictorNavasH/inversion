@@ -1685,45 +1685,6 @@
                     </div>
                 </div>
 
-                <!-- Transaction chart -->
-                <div class="monthly-chart-container" style="margin-top: 20px;">
-                    <div class="chart-header">
-                        <h3>Nº de transacciones mensuales</h3>
-                        <div class="chart-legend">
-                            <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: #49eada;"></div>
-                                2024
-                            </div>
-                            <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: rgba(73,234,218,0.35);"></div>
-                                2025
-                            </div>
-                            <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: rgba(255,71,151,0.7);"></div>
-                                2026
-                            </div>
-                        </div>
-                    </div>
-                    <canvas id="transactionsChart"></canvas>
-                </div>
-
-                <!-- Payment method breakdown -->
-                <div class="monthly-chart-container" style="margin-top: 20px;">
-                    <div class="chart-header">
-                        <h3>Método de pago — 2024</h3>
-                        <div class="chart-legend">
-                            <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: #02b1c4;"></div>
-                                Tarjeta
-                            </div>
-                            <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: #ff4797;"></div>
-                                Efectivo
-                            </div>
-                        </div>
-                    </div>
-                    <canvas id="paymentChart"></canvas>
-                </div>
             </div>
         </section>
 
@@ -2278,11 +2239,6 @@
         const data2024 = [94160, 80198, 104065, 64513, 69022, 61615, 71462, 98461, 64900, 57963, 66130, 78658];
         const data2025 = [62043, 55684, 53592, 61491, 43340, 37462, 53076, 63368, 37421, 39748, 38450, 53041];
         const data2026 = [39610, null, null, null, null, null, null, null, null, null, null, null];
-        const tx2024 = [1117, 1006, 1247, 790, 902, 825, 952, 1271, 827, 711, 790, 933];
-        const tx2025 = [756, null, null, null, null, null, 776, 1038, 620, 577, 542, 670];
-        const tx2026 = [457, null, null, null, null, null, null, null, null, null, null, null];
-        const card2024 = [79582, 67491, 93256, 56816, 61264, 52008, 57861, 80560, 57035, 49236, 54929, 66777];
-        const cash2024 = [9224, 8025, 6787, 5344, 4752, 6680, 9354, 11246, 6632, 5668, 8166, 8982];
 
         // Monthly Revenue Chart
         const monthlyCtx = document.getElementById('monthlyChart');
@@ -2353,142 +2309,6 @@
             });
         }
 
-        // Transactions Chart
-        const txCtx = document.getElementById('transactionsChart');
-        if (txCtx) {
-            new Chart(txCtx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: '2024',
-                        data: tx2024,
-                        borderColor: '#49eada',
-                        backgroundColor: 'rgba(73,234,218,0.1)',
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#49eada',
-                        pointBorderColor: '#49eada',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        tension: 0.3,
-                        fill: true
-                    }, {
-                        label: '2025',
-                        data: tx2025,
-                        borderColor: 'rgba(73,234,218,0.4)',
-                        backgroundColor: 'rgba(73,234,218,0.05)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(73,234,218,0.5)',
-                        pointBorderColor: 'rgba(73,234,218,0.5)',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        tension: 0.3,
-                        borderDash: [5, 5],
-                        fill: true,
-                        spanGaps: false
-                    }, {
-                        label: '2026',
-                        data: tx2026,
-                        borderColor: 'rgba(255, 71, 151, 0.8)',
-                        backgroundColor: 'rgba(255, 71, 151, 0.08)',
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#ff4797',
-                        pointBorderColor: '#ff4797',
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        tension: 0.3,
-                        fill: true,
-                        spanGaps: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#181C26',
-                            borderColor: 'rgba(73,234,218,0.3)',
-                            borderWidth: 1,
-                            titleColor: '#F0F2F5',
-                            bodyColor: '#9CA3B4',
-                            padding: 12,
-                            cornerRadius: 10,
-                            callbacks: {
-                                label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString('es-ES') + ' transacciones' : 'Sin datos')
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11, weight: 500 } } },
-                        y: {
-                            grid: { color: 'rgba(255,255,255,0.04)' },
-                            ticks: { font: { size: 11 } },
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Payment Method Chart (stacked bar)
-        const payCtx = document.getElementById('paymentChart');
-        if (payCtx) {
-            new Chart(payCtx, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Tarjeta',
-                        data: card2024,
-                        backgroundColor: 'rgba(2, 177, 196, 0.75)',
-                        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 6, bottomRight: 6 },
-                        borderSkipped: false
-                    }, {
-                        label: 'Efectivo',
-                        data: cash2024,
-                        backgroundColor: 'rgba(255, 71, 151, 0.65)',
-                        borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#181C26',
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            borderWidth: 1,
-                            titleColor: '#F0F2F5',
-                            bodyColor: '#9CA3B4',
-                            padding: 12,
-                            cornerRadius: 10,
-                            callbacks: {
-                                label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('es-ES') + ' €'
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: { color: 'rgba(255,255,255,0.04)' },
-                            ticks: { font: { size: 11, weight: 500 } }
-                        },
-                        y: {
-                            stacked: true,
-                            grid: { color: 'rgba(255,255,255,0.04)' },
-                            ticks: {
-                                font: { size: 11 },
-                                callback: v => (v / 1000).toFixed(0) + 'K €'
-                            },
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
     </script>
 </body>
 
