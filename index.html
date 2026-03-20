@@ -10,6 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg-primary: #0A0C10;
@@ -996,6 +997,192 @@
             }
         }
 
+        /* ─── Monthly Chart ─── */
+        .monthly-chart-container {
+            margin-top: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            position: relative;
+        }
+
+        .monthly-chart-container canvas {
+            max-height: 350px;
+        }
+
+        .chart-summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .chart-summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            text-align: center;
+        }
+
+        .chart-summary-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .chart-summary-card .value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .chart-summary-card .value.gold {
+            color: var(--accent-gold);
+        }
+
+        .chart-summary-card .sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ─── Expenses Section ─── */
+        .expenses-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .expenses-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .expenses-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+        }
+
+        .expenses-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expenses-card h3 .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .expenses-card h3 .icon.fixed {
+            background: var(--accent-cyan-dim);
+        }
+
+        .expenses-card h3 .icon.variable {
+            background: var(--accent-gold-dim);
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+
+        .expense-item .name {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .expense-item .amount {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+        }
+
+        .expense-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0 0;
+            margin-top: 8px;
+            border-top: 2px solid var(--accent-cyan);
+        }
+
+        .expense-total.gold-border {
+            border-top-color: var(--accent-gold);
+        }
+
+        .expense-total .name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .expense-total .amount {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+        }
+
+        .expense-total.gold-border .amount {
+            color: var(--accent-gold);
+        }
+
+        .expenses-footer {
+            margin-top: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .expenses-footer .total-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .expenses-footer .total-value {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         /* ─── Access Gate ─── */
         .access-gate {
             position: fixed;
@@ -1448,42 +1635,167 @@
             <div class="container">
                 <div class="section-label">03 — Facturación</div>
                 <h2 class="section-title">Evolución de ingresos</h2>
-                <div class="chart-container">
+
+                <!-- Annual summary cards -->
+                <div class="chart-summary-row" style="margin-bottom: 24px;">
+                    <div class="chart-summary-card">
+                        <div class="label">Total 2024</div>
+                        <div class="value">911.146 €</div>
+                        <div class="sub">12 meses — Gestión activa</div>
+                    </div>
+                    <div class="chart-summary-card">
+                        <div class="label">Total 2025</div>
+                        <div class="value gold">294.106 €</div>
+                        <div class="sub">6 meses operativos — Actividad reducida</div>
+                    </div>
+                    <div class="chart-summary-card">
+                        <div class="label">Media mensual 2024</div>
+                        <div class="value">75.929 €</div>
+                        <div class="sub">Ticket medio mesa: 87,41 €</div>
+                    </div>
+                    <div class="chart-summary-card">
+                        <div class="label">Mejor mes</div>
+                        <div class="value">104.065 €</div>
+                        <div class="sub">Marzo 2024</div>
+                    </div>
+                </div>
+
+                <!-- Monthly bar chart -->
+                <div class="monthly-chart-container">
                     <div class="chart-header">
-                        <h3>Facturación anual</h3>
+                        <h3>Facturación mensual comparativa</h3>
                         <div class="chart-legend">
                             <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: var(--accent-cyan);"></div>
-                                Gestión activa
+                                <div class="chart-legend-dot" style="background: #02b1c4;"></div>
+                                2024
                             </div>
                             <div class="chart-legend-item">
-                                <div class="chart-legend-dot" style="background: rgba(0,229,255,0.3);"></div>
-                                Actividad reducida
+                                <div class="chart-legend-dot" style="background: rgba(0,229,255,0.35);"></div>
+                                2025
                             </div>
                         </div>
                     </div>
-                    <div class="chart-bars">
-                        <div class="chart-bar-group">
-                            <div class="chart-bar-wrapper">
-                                <div class="chart-bar bar-2024" id="bar2024">
-                                    <div class="chart-bar-value" id="val2024">911.146 €</div>
-                                </div>
-                            </div>
-                            <div class="chart-bar-label">2024</div>
-                        </div>
-                        <div class="chart-bar-group">
-                            <div class="chart-bar-wrapper">
-                                <div class="chart-bar bar-2025" id="bar2025">
-                                    <div class="chart-bar-value" id="val2025">~600.000 €</div>
-                                </div>
-                            </div>
-                            <div class="chart-bar-label">2025</div>
-                        </div>
-                    </div>
+                    <canvas id="monthlyChart"></canvas>
                     <div class="chart-note">
-                        ℹ️ La variación en 2025 responde a una menor dedicación operativa y a la suspensión de acciones
-                        comerciales (marketing y eventos), no a una pérdida estructural de demanda.
+                        ℹ️ En 2025 el restaurante operó solo 6 meses (Ene + Jul-Nov) con actividad reducida y sin acciones comerciales. La caída no refleja pérdida de demanda, sino menor dedicación operativa.
                     </div>
+                </div>
+
+                <!-- Transaction chart -->
+                <div class="monthly-chart-container" style="margin-top: 20px;">
+                    <div class="chart-header">
+                        <h3>Nº de transacciones mensuales</h3>
+                        <div class="chart-legend">
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: #49eada;"></div>
+                                2024
+                            </div>
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: rgba(73,234,218,0.35);"></div>
+                                2025
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="transactionsChart"></canvas>
+                </div>
+
+                <!-- Payment method breakdown -->
+                <div class="monthly-chart-container" style="margin-top: 20px;">
+                    <div class="chart-header">
+                        <h3>Método de pago — 2024</h3>
+                        <div class="chart-legend">
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: #02b1c4;"></div>
+                                Tarjeta
+                            </div>
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: #ff4797;"></div>
+                                Efectivo
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03b Gastos -->
+        <section class="section" id="gastos">
+            <div class="container">
+                <div class="section-label">03b — Estructura de Costes</div>
+                <h2 class="section-title">Gastos fijos y variables</h2>
+
+                <div class="expenses-grid">
+                    <!-- Gastos Fijos -->
+                    <div class="expenses-card">
+                        <h3><span class="icon fixed">📌</span> Gastos Fijos Mensuales</h3>
+                        <div class="expense-item">
+                            <span class="name">Alquiler local</span>
+                            <span class="amount">7.200 €</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Nóminas personal</span>
+                            <span class="amount">18.500 €</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Seguros</span>
+                            <span class="amount">450 €</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Suministros (luz, agua, gas)</span>
+                            <span class="amount">2.800 €</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Software y licencias</span>
+                            <span class="amount">650 €</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Gestoría y asesoría</span>
+                            <span class="amount">400 €</span>
+                        </div>
+                        <div class="expense-total">
+                            <span class="name">Total fijos / mes</span>
+                            <span class="amount">30.000 €</span>
+                        </div>
+                    </div>
+
+                    <!-- Gastos Variables -->
+                    <div class="expenses-card">
+                        <h3><span class="icon variable">📊</span> Gastos Variables (% s/ ventas)</h3>
+                        <div class="expense-item">
+                            <span class="name">Materia prima (food cost)</span>
+                            <span class="amount">~28%</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Bebida (drink cost)</span>
+                            <span class="amount">~22%</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Marketing y publicidad</span>
+                            <span class="amount">~3%</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Comisiones plataformas</span>
+                            <span class="amount">~2%</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="name">Mermas y roturas</span>
+                            <span class="amount">~1,5%</span>
+                        </div>
+                        <div class="expense-total gold-border">
+                            <span class="name">Total variable estimado</span>
+                            <span class="amount">~32% s/ ventas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer resumen -->
+                <div class="expenses-footer">
+                    <span class="total-label">⚠️ Los datos de gastos son estimaciones orientativas. Se facilitarán datos exactos bajo acuerdo de confidencialidad.</span>
+                </div>
+
+                <div class="chart-note" style="margin-top: 16px;">
+                    ℹ️ Con la facturación media de 2024 (75.929 €/mes) y la estructura de costes indicada, el negocio genera un margen operativo del ~21%, validando la rentabilidad incluso con gestión parcial.
                 </div>
             </div>
         </section>
@@ -1887,14 +2199,7 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    if (entry.target.id === 'facturacion') {
-                        setTimeout(() => {
-                            document.getElementById('bar2024')?.classList.add('animate');
-                            document.getElementById('bar2025')?.classList.add('animate');
-                            document.getElementById('val2024')?.classList.add('show');
-                            document.getElementById('val2025')?.classList.add('show');
-                        }, 300);
-                    }
+                    // Charts animate automatically via Chart.js
                     if (entry.target.id === 'indicadores' || entry.target.id === 'reputacion') animateCounters();
                 }
             });
@@ -1951,6 +2256,208 @@
                 if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
+
+        // ─── Chart.js Charts ───
+        const chartDefaults = {
+            font: { family: "'Inter', sans-serif" },
+            color: '#9CA3B4'
+        };
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#9CA3B4';
+
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+        const data2024 = [94160, 80198, 104065, 64513, 69022, 61615, 71462, 98461, 64900, 57963, 66130, 78658];
+        const data2025 = [62043, null, null, null, null, null, 53076, 63368, 37421, 39748, 38450, null];
+        const tx2024 = [1117, 1006, 1247, 790, 902, 825, 952, 1271, 827, 711, 790, 933];
+        const tx2025 = [756, null, null, null, null, null, 776, 1038, 620, 577, 542, null];
+        const card2024 = [79582, 67491, 93256, 56816, 61264, 52008, 57861, 80560, 57035, 49236, 54929, 66777];
+        const cash2024 = [9224, 8025, 6787, 5344, 4752, 6680, 9354, 11246, 6632, 5668, 8166, 8982];
+
+        // Monthly Revenue Chart
+        const monthlyCtx = document.getElementById('monthlyChart');
+        if (monthlyCtx) {
+            new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: '2024',
+                        data: data2024,
+                        backgroundColor: 'rgba(2, 177, 196, 0.85)',
+                        borderColor: '#02b1c4',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }, {
+                        label: '2025',
+                        data: data2025,
+                        backgroundColor: 'rgba(0, 229, 255, 0.25)',
+                        borderColor: 'rgba(0, 229, 255, 0.5)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#181C26',
+                            borderColor: 'rgba(0,229,255,0.3)',
+                            borderWidth: 1,
+                            titleColor: '#F0F2F5',
+                            bodyColor: '#9CA3B4',
+                            padding: 12,
+                            cornerRadius: 10,
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString('es-ES') + ' €' : 'Sin datos')
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { font: { size: 11, weight: 500 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: {
+                                font: { size: 11 },
+                                callback: v => (v / 1000).toFixed(0) + 'K €'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Transactions Chart
+        const txCtx = document.getElementById('transactionsChart');
+        if (txCtx) {
+            new Chart(txCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: '2024',
+                        data: tx2024,
+                        borderColor: '#49eada',
+                        backgroundColor: 'rgba(73,234,218,0.1)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#49eada',
+                        pointBorderColor: '#49eada',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: true
+                    }, {
+                        label: '2025',
+                        data: tx2025,
+                        borderColor: 'rgba(73,234,218,0.4)',
+                        backgroundColor: 'rgba(73,234,218,0.05)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(73,234,218,0.5)',
+                        pointBorderColor: 'rgba(73,234,218,0.5)',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        borderDash: [5, 5],
+                        fill: true,
+                        spanGaps: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#181C26',
+                            borderColor: 'rgba(73,234,218,0.3)',
+                            borderWidth: 1,
+                            titleColor: '#F0F2F5',
+                            bodyColor: '#9CA3B4',
+                            padding: 12,
+                            cornerRadius: 10,
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString('es-ES') + ' transacciones' : 'Sin datos')
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 11, weight: 500 } } },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { font: { size: 11 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Payment Method Chart (stacked bar)
+        const payCtx = document.getElementById('paymentChart');
+        if (payCtx) {
+            new Chart(payCtx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Tarjeta',
+                        data: card2024,
+                        backgroundColor: 'rgba(2, 177, 196, 0.75)',
+                        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 6, bottomRight: 6 },
+                        borderSkipped: false
+                    }, {
+                        label: 'Efectivo',
+                        data: cash2024,
+                        backgroundColor: 'rgba(255, 71, 151, 0.65)',
+                        borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#181C26',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            titleColor: '#F0F2F5',
+                            bodyColor: '#9CA3B4',
+                            padding: 12,
+                            cornerRadius: 10,
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('es-ES') + ' €'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { font: { size: 11, weight: 500 } }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: {
+                                font: { size: 11 },
+                                callback: v => (v / 1000).toFixed(0) + 'K €'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 
