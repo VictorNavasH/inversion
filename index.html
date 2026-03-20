@@ -996,6 +996,154 @@
             }
         }
 
+        /* ─── Access Gate ─── */
+        .access-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .access-gate.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .access-gate-inner {
+            text-align: center;
+            max-width: 400px;
+            padding: 0 28px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .access-gate-logo {
+            margin-bottom: 32px;
+        }
+
+        .access-gate-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: var(--accent-cyan-dim);
+            border: 1px solid var(--border-accent);
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
+
+        .access-gate-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .access-gate h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .access-gate p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .access-input {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .access-input::placeholder {
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .access-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-dim);
+        }
+
+        .access-input.error {
+            border-color: #ff4757;
+            box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        .access-btn {
+            width: 100%;
+            margin-top: 14px;
+            padding: 14px 20px;
+            background: var(--gradient-accent);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--bg-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+        }
+
+        .access-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .access-btn:active {
+            transform: translateY(0);
+        }
+
+        .access-error-msg {
+            color: #ff4757;
+            font-size: 0.82rem;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .access-error-msg.show {
+            opacity: 1;
+        }
+
+        body.locked {
+            overflow: hidden;
+        }
+
         /* ─── Print ─── */
         @media print {
 
@@ -1036,7 +1184,42 @@
     </style>
 </head>
 
-<body>
+<body class="locked">
+    <!-- Access Gate -->
+    <div class="access-gate" id="accessGate">
+        <div class="ambient-bg">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+        </div>
+        <div class="access-gate-inner">
+            <div class="access-gate-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="80" height="80">
+                    <circle cx="152" cy="32" r="22" fill="#02b1c4" />
+                    <path fill="#02b1c4" d="
+                        M 35,15
+                        L 35,128
+                        Q 35,185 100,185
+                        Q 165,185 165,128
+                        L 165,82
+                        L 130,82
+                        L 130,128
+                        Q 130,152 100,152
+                        Q 70,152 70,128
+                        L 70,15
+                        Z
+                    " />
+                </svg>
+            </div>
+            <div class="access-gate-badge"><span class="dot"></span> Documento confidencial</div>
+            <h2>Acceso Restringido</h2>
+            <p>Este documento contiene información reservada.<br>Ingresa tu código de acceso para continuar.</p>
+            <input type="text" class="access-input" id="accessCode" placeholder="Código de acceso" autocomplete="off">
+            <button class="access-btn" id="accessBtn">Acceder</button>
+            <div class="access-error-msg" id="accessError">Código incorrecto. Inténtalo de nuevo.</div>
+        </div>
+    </div>
+
     <div class="ambient-bg">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -1593,14 +1776,14 @@
                                 stroke-width="3">
                                 <path d="M20 6L9 17l-5-5" />
                             </svg></div>
-                        <span style="font-size: 0.88rem;">Activos tecnológicos relevantes</span>
+                        <span style="font-size: 0.88rem;">Concepto de alto valor diferencial</span>
                     </div>
                     <div class="conclusion-item">
                         <div class="conclusion-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3">
                                 <path d="M20 6L9 17l-5-5" />
                             </svg></div>
-                        <span style="font-size: 0.88rem;">Ubicación estable</span>
+                        <span style="font-size: 0.88rem;">Facturación desde el primer día</span>
                     </div>
                     <div class="conclusion-item">
                         <div class="conclusion-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1658,6 +1841,42 @@
     </footer>
 
     <script>
+        // Access Gate
+        (function () {
+            const gate = document.getElementById('accessGate');
+            const input = document.getElementById('accessCode');
+            const btn = document.getElementById('accessBtn');
+            const errorMsg = document.getElementById('accessError');
+            const CODE = 'SMART2026';
+
+            function tryAccess() {
+                const val = input.value.trim().toUpperCase();
+                if (val === CODE) {
+                    gate.classList.add('hidden');
+                    document.body.classList.remove('locked');
+                    sessionStorage.setItem('nua_access', '1');
+                } else {
+                    input.classList.add('error');
+                    errorMsg.classList.add('show');
+                    setTimeout(() => {
+                        input.classList.remove('error');
+                    }, 400);
+                }
+            }
+
+            btn.addEventListener('click', tryAccess);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') tryAccess();
+                errorMsg.classList.remove('show');
+            });
+
+            // If already authenticated in this session
+            if (sessionStorage.getItem('nua_access') === '1') {
+                gate.classList.add('hidden');
+                document.body.classList.remove('locked');
+            }
+        })();
+
         // Intersection Observer for section animations
         const sections = document.querySelectorAll('.section');
         const observer = new IntersectionObserver((entries) => {
