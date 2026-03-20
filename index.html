@@ -1654,9 +1654,9 @@
                         <div class="sub">Ticket medio mesa: 87,41 €</div>
                     </div>
                     <div class="chart-summary-card">
-                        <div class="label">Mejor mes</div>
-                        <div class="value">104.065 €</div>
-                        <div class="sub">Marzo 2024</div>
+                        <div class="label">Enero 2026</div>
+                        <div class="value gold">39.610 €</div>
+                        <div class="sub">457 transacciones — Actividad reducida</div>
                     </div>
                 </div>
 
@@ -1672,6 +1672,10 @@
                             <div class="chart-legend-item">
                                 <div class="chart-legend-dot" style="background: rgba(0,229,255,0.35);"></div>
                                 2025
+                            </div>
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: rgba(255,71,151,0.7);"></div>
+                                2026
                             </div>
                         </div>
                     </div>
@@ -1693,6 +1697,10 @@
                             <div class="chart-legend-item">
                                 <div class="chart-legend-dot" style="background: rgba(73,234,218,0.35);"></div>
                                 2025
+                            </div>
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: rgba(255,71,151,0.7);"></div>
+                                2026
                             </div>
                         </div>
                     </div>
@@ -2269,8 +2277,10 @@
 
         const data2024 = [94160, 80198, 104065, 64513, 69022, 61615, 71462, 98461, 64900, 57963, 66130, 78658];
         const data2025 = [62043, null, null, null, null, null, 53076, 63368, 37421, 39748, 38450, null];
+        const data2026 = [39610, null, null, null, null, null, null, null, null, null, null, null];
         const tx2024 = [1117, 1006, 1247, 790, 902, 825, 952, 1271, 827, 711, 790, 933];
         const tx2025 = [756, null, null, null, null, null, 776, 1038, 620, 577, 542, null];
+        const tx2026 = [457, null, null, null, null, null, null, null, null, null, null, null];
         const card2024 = [79582, 67491, 93256, 56816, 61264, 52008, 57861, 80560, 57035, 49236, 54929, 66777];
         const cash2024 = [9224, 8025, 6787, 5344, 4752, 6680, 9354, 11246, 6632, 5668, 8166, 8982];
 
@@ -2294,6 +2304,14 @@
                         data: data2025,
                         backgroundColor: 'rgba(0, 229, 255, 0.25)',
                         borderColor: 'rgba(0, 229, 255, 0.5)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }, {
+                        label: '2026',
+                        data: data2026,
+                        backgroundColor: 'rgba(255, 71, 151, 0.6)',
+                        borderColor: 'rgba(255, 71, 151, 0.8)',
                         borderWidth: 1,
                         borderRadius: 6,
                         borderSkipped: false
@@ -2366,6 +2384,19 @@
                         pointHoverRadius: 6,
                         tension: 0.3,
                         borderDash: [5, 5],
+                        fill: true,
+                        spanGaps: false
+                    }, {
+                        label: '2026',
+                        data: tx2026,
+                        borderColor: 'rgba(255, 71, 151, 0.8)',
+                        backgroundColor: 'rgba(255, 71, 151, 0.08)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#ff4797',
+                        pointBorderColor: '#ff4797',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.3,
                         fill: true,
                         spanGaps: false
                     }]
