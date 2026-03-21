@@ -2326,6 +2326,14 @@
                 errorMsg.classList.remove('show');
             });
 
+            // Bypass with URL token (for AI tools / direct sharing)
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('token') === 'BYPASS2026') {
+                gate.classList.add('hidden');
+                document.body.classList.remove('locked');
+                return;
+            }
+
             // If already authenticated in this session
             if (sessionStorage.getItem('nua_access') === '1') {
                 gate.classList.add('hidden');
