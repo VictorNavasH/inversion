@@ -1184,6 +1184,98 @@
         }
 
         /* ─── Access Gate ─── */
+        /* NDA Modal */
+        .nda-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            padding: 20px;
+        }
+
+        .nda-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+        }
+
+        .nda-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius);
+            max-width: 620px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 60px rgba(0, 229, 255, 0.1);
+        }
+
+        .nda-header {
+            padding: 28px 28px 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nda-content {
+            padding: 24px 28px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .nda-content p {
+            margin-bottom: 12px;
+        }
+
+        .nda-content strong {
+            color: var(--text-primary);
+        }
+
+        .nda-footer {
+            padding: 20px 28px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .nda-checkbox-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .nda-checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-cyan);
+            cursor: pointer;
+        }
+
+        .nda-accept-btn {
+            opacity: 0.4;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .nda-accept-btn.enabled {
+            opacity: 1;
+            pointer-events: all;
+        }
+
         .access-gate {
             position: fixed;
             inset: 0;
@@ -1404,6 +1496,35 @@
             <input type="text" class="access-input" id="accessCode" placeholder="Código de acceso" autocomplete="off">
             <button class="access-btn" id="accessBtn">Acceder</button>
             <div class="access-error-msg" id="accessError">Código incorrecto. Inténtalo de nuevo.</div>
+        </div>
+    </div>
+
+    <!-- NDA Modal -->
+    <div class="nda-overlay" id="ndaOverlay">
+        <div class="nda-modal">
+            <div class="nda-header">
+                <div class="access-gate-badge" style="margin: 0 auto 16px;"><span class="dot"></span> Acuerdo de Confidencialidad</div>
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; margin-bottom: 8px;">Antes de continuar</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Lee y acepta las siguientes condiciones de confidencialidad.</p>
+            </div>
+            <div class="nda-content">
+                <p><strong>ACUERDO DE CONFIDENCIALIDAD Y NO DIVULGACIÓN (NDA)</strong></p>
+                <p>Al acceder a este documento, el receptor (en adelante, "la Parte Receptora") acepta las siguientes condiciones:</p>
+                <p><strong>1. Información Confidencial.</strong> Toda la información contenida en este memorándum — incluyendo datos financieros, operativos, tecnológicos, estratégicos y comerciales relativos a NÜA Smart Restaurant — tiene carácter estrictamente confidencial.</p>
+                <p><strong>2. Obligación de Confidencialidad.</strong> La Parte Receptora se compromete a: (a) no divulgar, reproducir ni distribuir total o parcialmente la información contenida en este documento a terceros sin autorización previa y por escrito del propietario; (b) utilizar la información exclusivamente para evaluar la oportunidad de inversión o adquisición del negocio; (c) no contactar directamente a empleados, proveedores o clientes del negocio sin autorización expresa.</p>
+                <p><strong>3. Duración.</strong> Las obligaciones de confidencialidad se mantendrán vigentes durante un período de 2 años desde la fecha de acceso a este documento, independientemente de que se materialice o no la operación.</p>
+                <p><strong>4. Propiedad Intelectual.</strong> Todos los derechos de propiedad intelectual e industrial relacionados con la marca NÜA, su tecnología, software y sistemas permanecen en poder del propietario hasta la formalización de una eventual compraventa.</p>
+                <p><strong>5. Responsabilidad.</strong> El incumplimiento de este acuerdo podrá dar lugar a las acciones legales que correspondan conforme a la legislación española vigente, incluyendo la reclamación de daños y perjuicios.</p>
+                <p><strong>6. Registro de Acceso.</strong> Queda registrada la fecha, hora e IP de acceso a este documento como prueba de aceptación de las presentes condiciones.</p>
+                <p style="margin-top: 16px; color: var(--text-muted); font-size: 0.8rem;">Este acuerdo se rige por la legislación española. Para cualquier controversia, las partes se someten a los juzgados y tribunales de Barcelona.</p>
+            </div>
+            <div class="nda-footer">
+                <label class="nda-checkbox-label" for="ndaCheck">
+                    <input type="checkbox" id="ndaCheck">
+                    <span>He leído y acepto las condiciones de confidencialidad</span>
+                </label>
+                <button class="access-btn nda-accept-btn" id="ndaAcceptBtn" disabled>Acepto y continúo</button>
+            </div>
         </div>
     </div>
 
@@ -2148,20 +2269,33 @@
     </footer>
 
     <script>
-        // Access Gate
+        // Access Gate + NDA
         (function () {
             const gate = document.getElementById('accessGate');
             const input = document.getElementById('accessCode');
             const btn = document.getElementById('accessBtn');
             const errorMsg = document.getElementById('accessError');
+            const ndaOverlay = document.getElementById('ndaOverlay');
+            const ndaCheck = document.getElementById('ndaCheck');
+            const ndaAcceptBtn = document.getElementById('ndaAcceptBtn');
             const CODE = 'SMART2026';
+
+            function grantAccess() {
+                ndaOverlay.classList.remove('active');
+                gate.classList.add('hidden');
+                document.body.classList.remove('locked');
+                sessionStorage.setItem('nua_access', '1');
+            }
+
+            function showNDA() {
+                gate.classList.add('hidden');
+                ndaOverlay.classList.add('active');
+            }
 
             function tryAccess() {
                 const val = input.value.trim().toUpperCase();
                 if (val === CODE) {
-                    gate.classList.add('hidden');
-                    document.body.classList.remove('locked');
-                    sessionStorage.setItem('nua_access', '1');
+                    showNDA();
                 } else {
                     input.classList.add('error');
                     errorMsg.classList.add('show');
@@ -2170,6 +2304,21 @@
                     }, 400);
                 }
             }
+
+            // Checkbox enables button
+            ndaCheck.addEventListener('change', () => {
+                if (ndaCheck.checked) {
+                    ndaAcceptBtn.classList.add('enabled');
+                    ndaAcceptBtn.disabled = false;
+                } else {
+                    ndaAcceptBtn.classList.remove('enabled');
+                    ndaAcceptBtn.disabled = true;
+                }
+            });
+
+            ndaAcceptBtn.addEventListener('click', () => {
+                if (ndaCheck.checked) grantAccess();
+            });
 
             btn.addEventListener('click', tryAccess);
             input.addEventListener('keydown', (e) => {
