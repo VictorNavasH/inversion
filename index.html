@@ -1680,94 +1680,93 @@
                 <div class="section-label">03b — Estructura de Costes</div>
                 <h2 class="section-title">Gastos fijos y variables</h2>
 
-                <div class="expenses-grid">
-                    <!-- Gastos Fijos -->
-                    <div class="expenses-card">
+                <!-- Single unified expenses card -->
+                <div style="max-width: 700px; margin: 0 auto;">
+                    <div class="expenses-card" style="width: 100%;">
                         <h3><span class="icon fixed">📌</span> Gastos Fijos Mensuales</h3>
-                        <div class="expense-item">
-                            <span class="name">Nóminas personal (sala + cocina)</span>
-                            <span class="amount">8.940 €</span>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 32px;">
+                            <div class="expense-item">
+                                <span class="name">Personal (sala + cocina)</span>
+                                <span class="amount">8.940 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Seguridad Social</span>
+                                <span class="amount">3.200 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Alquiler local</span>
+                                <span class="amount">3.130 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Luz</span>
+                                <span class="amount">1.500 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Impuestos locales</span>
+                                <span class="amount">1.000 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Software y licencias</span>
+                                <span class="amount">1.109 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Gastos varios</span>
+                                <span class="amount">500 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Gestoría</span>
+                                <span class="amount">400 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Autónomos</span>
+                                <span class="amount">380 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Agua</span>
+                                <span class="amount">340 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Mantenimiento</span>
+                                <span class="amount">300 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Seguros</span>
+                                <span class="amount">220 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Telecomunicaciones</span>
+                                <span class="amount">180 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Renting Cashkeeper</span>
+                                <span class="amount">180 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Alarma</span>
+                                <span class="amount">60 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">Control de plagas</span>
+                                <span class="amount">58 €</span>
+                            </div>
+                            <div class="expense-item">
+                                <span class="name">SGAE</span>
+                                <span class="amount">50 €</span>
+                            </div>
                         </div>
-                        <div class="expense-item">
-                            <span class="name">Seguridad Social</span>
-                            <span class="amount">3.200 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Alquiler local</span>
-                            <span class="amount">3.130 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Luz</span>
-                            <span class="amount">1.500 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Impuestos locales</span>
-                            <span class="amount">1.000 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Software y licencias</span>
-                            <span class="amount">1.109 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Gastos varios</span>
-                            <span class="amount">500 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Gestoría</span>
-                            <span class="amount">400 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Autónomos</span>
-                            <span class="amount">380 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Agua</span>
-                            <span class="amount">340 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Mantenimiento</span>
-                            <span class="amount">300 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Seguros</span>
-                            <span class="amount">220 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Telecomunicaciones</span>
-                            <span class="amount">180 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Renting Cashkeeper</span>
-                            <span class="amount">180 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Alarma</span>
-                            <span class="amount">60 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">Control de plagas</span>
-                            <span class="amount">58 €</span>
-                        </div>
-                        <div class="expense-item">
-                            <span class="name">SGAE</span>
-                            <span class="amount">50 €</span>
-                        </div>
-                        <div class="expense-total">
+
+                        <div class="expense-total" style="margin-top: 16px;">
                             <span class="name">Total gastos fijos / mes</span>
                             <span class="amount">~21.500 €</span>
                         </div>
-                    </div>
 
-                    <!-- Gastos Variables -->
-                    <div class="expenses-card">
-                        <h3><span class="icon variable">📊</span> Coste Variable</h3>
-                        <div class="expense-item">
-                            <span class="name">Coste de producto (food & drink cost, mermas)</span>
-                            <span class="amount">~23%</span>
-                        </div>
-                        <div class="expense-total gold-border">
-                            <span class="name">Total variable sobre ventas</span>
-                            <span class="amount">~23%</span>
+                        <div style="border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 20px;">
+                            <h3 style="margin-bottom: 12px;"><span class="icon variable">📊</span> Coste Variable</h3>
+                            <div class="expense-item">
+                                <span class="name">Coste de producto (food & drink cost, mermas)</span>
+                                <span class="amount" style="color: var(--accent-gold);">~23% s/ ventas</span>
+                            </div>
                         </div>
                     </div>
                 </div>
