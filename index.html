@@ -2331,8 +2331,8 @@
                 'ENGEL2026':  { agencia: 'Engel & Völkers' }
             };
 
-            // Tracking via n8n webhook (HTTPS) → Supabase (HTTP)
-            const TRACKING_URL = 'https://n8n.nuasmartrestaurant.com/webhook/tracking-memorandum';
+            // Tracking via Vercel serverless → Supabase
+            const TRACKING_URL = '/api/tracking';
 
             let currentCode = null;
 
