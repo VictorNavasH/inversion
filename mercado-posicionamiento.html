@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NÜA — Análisis de Mercado y Posicionamiento Competitivo</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0A0C10;
+            --bg-secondary: #12151C;
+            --bg-card: #181C26;
+            --bg-card-hover: #1E2330;
+            --accent-cyan: #02b1c4;
+            --accent-cyan-dim: rgba(0, 229, 255, 0.15);
+            --accent-cyan-glow: rgba(0, 229, 255, 0.3);
+            --accent-gold: #ff4797;
+            --accent-green: #49eada;
+            --text-primary: #F0F2F5;
+            --text-secondary: #9CA3B4;
+            --text-muted: #5F6880;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-accent: rgba(0, 229, 255, 0.2);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-weight: 300;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .ambient-bg {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none; overflow: hidden;
+        }
+        .ambient-bg .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(120px); opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+        .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,229,255,0.12), transparent 70%); top: -150px; right: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,213,79,0.08), transparent 70%); bottom: 10%; left: -100px; animation-delay: -7s; }
+        @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-20px) scale(1.05); } 66% { transform: translate(-20px,15px) scale(0.95); } }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        /* Header */
+        .report-header {
+            padding: 80px 0 40px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 60px;
+        }
+        .report-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(0,229,255,0.08); border: 1px solid var(--border-accent);
+            padding: 6px 16px; border-radius: 20px; font-size: 0.7rem;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--accent-cyan);
+            margin-bottom: 24px;
+        }
+        .report-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-cyan); }
+        .report-header h1 {
+            font-family: 'Outfit', sans-serif; font-size: 2.4rem;
+            font-weight: 700; line-height: 1.2; margin-bottom: 12px;
+        }
+        .report-header h1 span { color: var(--accent-cyan); }
+        .report-header .subtitle {
+            color: var(--text-secondary); font-size: 1rem; max-width: 700px;
+        }
+        .report-meta {
+            display: flex; gap: 24px; margin-top: 20px; font-size: 0.8rem; color: var(--text-muted);
+        }
+
+        /* Sections */
+        .section { margin-bottom: 64px; }
+        .section-label {
+            font-size: 0.7rem; letter-spacing: 2.5px; text-transform: uppercase;
+            color: var(--accent-cyan); margin-bottom: 12px; font-weight: 600;
+        }
+        .section-title {
+            font-family: 'Outfit', sans-serif; font-size: 1.6rem;
+            font-weight: 600; margin-bottom: 20px;
+        }
+        .section-text {
+            color: var(--text-secondary); font-size: 0.92rem; max-width: 800px;
+            margin-bottom: 24px; line-height: 1.8;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius); padding: 28px; margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .card-title {
+            font-family: 'Outfit', sans-serif; font-size: 1rem;
+            font-weight: 600; margin-bottom: 16px; color: var(--text-primary);
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 32px;
+        }
+        .kpi-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm); padding: 20px; text-align: center;
+        }
+        .kpi-label { font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+        .kpi-value { font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--accent-cyan); }
+        .kpi-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+        .kpi-value.highlight { color: var(--accent-green); }
+        .kpi-value.warn { color: var(--accent-gold); }
+
+        /* Tables */
+        .table-wrapper { overflow-x: auto; margin-bottom: 24px; }
+        table {
+            width: 100%; border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            text-align: left; padding: 12px 16px;
+            font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-muted); border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+        td {
+            padding: 14px 16px; border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr.highlight-row { background: rgba(0,229,255,0.05); }
+        tr.highlight-row td { color: var(--accent-cyan); font-weight: 500; }
+        .tag {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            font-size: 0.72rem; font-weight: 500;
+        }
+        .tag-green { background: rgba(73,234,218,0.12); color: var(--accent-green); }
+        .tag-yellow { background: rgba(255,213,79,0.12); color: #FFD54F; }
+        .tag-red { background: rgba(255,71,151,0.12); color: var(--accent-gold); }
+        .tag-cyan { background: rgba(0,229,255,0.12); color: var(--accent-cyan); }
+
+        /* Comparison bars */
+        .bar-compare { margin-bottom: 16px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px; }
+        .bar-label span:last-child { font-weight: 600; color: var(--accent-cyan); }
+        .bar-track { height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; background: var(--accent-cyan); transition: width 1s ease; }
+        .bar-fill.gold { background: linear-gradient(90deg, #FFD54F, #FFB300); }
+        .bar-fill.green { background: var(--accent-green); }
+
+        /* Scenario cards */
+        .scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+        .scenario-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius); padding: 24px; text-align: center;
+        }
+        .scenario-card.best { border-color: var(--accent-green); }
+        .scenario-card.base { border-color: var(--accent-cyan); }
+        .scenario-card.conservative { border-color: var(--text-muted); }
+        .scenario-name { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+        .scenario-revenue { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .scenario-card.best .scenario-revenue { color: var(--accent-green); }
+        .scenario-card.base .scenario-revenue { color: var(--accent-cyan); }
+        .scenario-card.conservative .scenario-revenue { color: var(--text-secondary); }
+        .scenario-detail { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .scenario-payback {
+            margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);
+            font-size: 0.85rem; font-weight: 500;
+        }
+
+        /* Callout */
+        .callout {
+            background: rgba(0,229,255,0.05); border-left: 3px solid var(--accent-cyan);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 20px 24px; margin: 24px 0; font-size: 0.88rem;
+            color: var(--text-secondary); line-height: 1.8;
+        }
+        .callout strong { color: var(--text-primary); }
+        .callout.warn { border-left-color: #FFD54F; background: rgba(255,213,79,0.05); }
+        .callout.green { border-left-color: var(--accent-green); background: rgba(73,234,218,0.05); }
+
+        /* Footer */
+        .report-footer {
+            padding: 40px 0; border-top: 1px solid var(--border-color);
+            text-align: center; color: var(--text-muted); font-size: 0.75rem;
+        }
+
+        /* Chart */
+        .chart-container { position: relative; height: 300px; margin: 24px 0; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .report-header h1 { font-size: 1.6rem; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .report-meta { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header class="report-header">
+            <div class="report-badge"><span class="dot"></span> Documento interno — Uso estratégico</div>
+            <h1>Análisis de Mercado y <span>Posicionamiento Competitivo</span></h1>
+            <p class="subtitle">Estudio del mercado de traspasos de restauración en Barcelona (Gràcia / Eixample) y posicionamiento del activo NÜA Smart Restaurant frente a la oferta comparable.</p>
+            <div class="report-meta">
+                <span>Marzo 2026</span>
+                <span>NÜA Smart Restaurant</span>
+                <span>Vila de Gràcia, Barcelona</span>
+            </div>
+        </header>
+
+        <!-- 01. Resumen ejecutivo -->
+        <section class="section">
+            <div class="section-label">01 — Resumen Ejecutivo</div>
+            <h2 class="section-title">Posición del activo en el mercado</h2>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Precio traspaso</div>
+                    <div class="kpi-value">350.000 €</div>
+                    <div class="kpi-sub">Valor fijo neto</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Múltiplo EBITDA</div>
+                    <div class="kpi-value highlight">2,8x</div>
+                    <div class="kpi-sub">Sector: 3,6x — 5,7x</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Margen EBITDA</div>
+                    <div class="kpi-value highlight">~21%</div>
+                    <div class="kpi-sub">Sector: 5-15%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Payback estimado</div>
+                    <div class="kpi-value">2,8 años</div>
+                    <div class="kpi-sub">Sector: 4-8 años</div>
+                </div>
+            </div>
+
+            <div class="callout green">
+                <strong>Conclusión:</strong> El precio de 350.000 € se sitúa por debajo de la media del mercado para activos C3 comparables en Gràcia (195.000 — 480.000 €), pero incluye un paquete tecnológico valorado en +209.000 € y una licencia C3 Mixta estimada en 150.000 — 180.000 €. El fondo de comercio y la facturación se transfieren sin coste adicional implícito.
+            </div>
+        </section>
+
+        <!-- 02. Mercado de traspasos -->
+        <section class="section">
+            <div class="section-label">02 — Mercado de Traspasos Barcelona Q1 2026</div>
+            <h2 class="section-title">Oferta actual de traspasos C3</h2>
+            <p class="section-text">El mercado se encuentra en fase de profesionalización forzosa. La implementación de Veri*factu y las restricciones del Plan de Usos han dividido la oferta en locales tradicionales con riesgo regulatorio y activos "compliance-ready" con alta digitalización.</p>
+
+            <div class="card">
+                <div class="card-title">Comparativa de traspasos — Gràcia</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activo</th>
+                                <th>Superficie</th>
+                                <th>Alquiler/mes</th>
+                                <th>Traspaso</th>
+                                <th>€/m²</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="highlight-row">
+                                <td><strong>NÜA Smart Restaurant</strong></td>
+                                <td>160 m²</td>
+                                <td>3.130 €</td>
+                                <td><strong>350.000 €</strong></td>
+                                <td>2.188 €</td>
+                                <td><span class="tag tag-cyan">Premium Tech</span></td>
+                            </tr>
+                            <tr>
+                                <td>Rest. Camp d'en Grassot</td>
+                                <td>146 m²</td>
+                                <td>4.800 €</td>
+                                <td>480.000 €</td>
+                                <td>3.288 €</td>
+                                <td><span class="tag tag-yellow">Tradicional</span></td>
+                            </tr>
+                            <tr>
+                                <td>Local C3 Mixta Vila de Gràcia</td>
+                                <td>90 m²</td>
+                                <td>3.800 €</td>
+                                <td>450.000 €</td>
+                                <td>5.000 €</td>
+                                <td><span class="tag tag-yellow">Zona prime</span></td>
+                            </tr>
+                            <tr>
+                                <td>Bar-Rest. C3 Gràcia (HabitaRetail)</td>
+                                <td>137 m²</td>
+                                <td>1.540 €</td>
+                                <td>~275.000 €</td>
+                                <td>2.007 €</td>
+                                <td><span class="tag tag-yellow">Con terraza</span></td>
+                            </tr>
+                            <tr>
+                                <td>Local Travessera Vila de Gràcia</td>
+                                <td>133 m²</td>
+                                <td>1.850 €</td>
+                                <td>195.000 €</td>
+                                <td>1.466 €</td>
+                                <td><span class="tag tag-red">A reformar</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Comparativa de traspasos — Eixample</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activo</th>
+                                <th>Superficie</th>
+                                <th>Alquiler/mes</th>
+                                <th>Traspaso</th>
+                                <th>€/m²</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Rest. C3 Eixample Dret</td>
+                                <td>120 m²</td>
+                                <td>3.795 €</td>
+                                <td>400.000 €</td>
+                                <td>3.333 €</td>
+                                <td><span class="tag tag-yellow">C3 Mixta</span></td>
+                            </tr>
+                            <tr>
+                                <td>Local C3 Eixample Izq.</td>
+                                <td>148 m²</td>
+                                <td>2.637 €</td>
+                                <td>265.000 €</td>
+                                <td>1.791 €</td>
+                                <td><span class="tag tag-yellow">Estándar</span></td>
+                            </tr>
+                            <tr>
+                                <td>Rest. C3 Eixample Dret</td>
+                                <td>318 m²</td>
+                                <td>3.600 €</td>
+                                <td>195.000 €</td>
+                                <td>613 €</td>
+                                <td><span class="tag tag-red">Estándar / Grande</span></td>
+                            </tr>
+                            <tr>
+                                <td>Local C3 Sant Antoni</td>
+                                <td>150 m²</td>
+                                <td>2.900 €</td>
+                                <td>180.000 €</td>
+                                <td>1.200 €</td>
+                                <td><span class="tag tag-yellow">Estándar</span></td>
+                            </tr>
+                            <tr>
+                                <td>Eixample Esquerra</td>
+                                <td>300 m²</td>
+                                <td>3.100 €</td>
+                                <td>1.300.000 €</td>
+                                <td>4.333 €</td>
+                                <td><span class="tag tag-green">Premium / C3 Mixta</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong>Rango de mercado:</strong> Para locales C3 de 100-200 m² en Gràcia y Eixample, los traspasos oscilan entre 130.000 € y 480.000 €. El precio medio por m² de traspaso se sitúa entre 1.800 y 3.300 €/m². NÜA, a 2.188 €/m², se posiciona en la franja media-baja incluyendo un diferencial tecnológico único.
+            </div>
+        </section>
+
+        <!-- 03. Ventaja alquiler -->
+        <section class="section">
+            <div class="section-label">03 — Análisis de Rentas</div>
+            <h2 class="section-title">Ventaja competitiva del alquiler</h2>
+            <p class="section-text">El alquiler blindado de 3.130 €/mes (IVA incluido) sitúa el coste por m² un 20-55% por debajo de la media de zona para locales C3 en Gràcia prime.</p>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">NÜA — €/m²</div>
+                    <div class="kpi-value highlight">19,56 €</div>
+                    <div class="kpi-sub">Contrato vigente hasta 2030</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Media Gràcia — €/m²</div>
+                    <div class="kpi-value warn">25-45 €</div>
+                    <div class="kpi-sub">Ejes principales</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Ahorro anual estimado</div>
+                    <div class="kpi-value highlight">~10.000 €</div>
+                    <div class="kpi-sub">vs. precio de mercado</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Valor capitalizado (5x)</div>
+                    <div class="kpi-value">52.000 €</div>
+                    <div class="kpi-sub">Valor intrínseco adicional</div>
+                </div>
+            </div>
+
+            <div class="bar-compare">
+                <div class="bar-label"><span>NÜA Smart Restaurant</span><span>19,56 €/m²</span></div>
+                <div class="bar-track"><div class="bar-fill green" style="width: 43%"></div></div>
+            </div>
+            <div class="bar-compare">
+                <div class="bar-label"><span>Media zona prime Gràcia</span><span>~30 €/m²</span></div>
+                <div class="bar-track"><div class="bar-fill gold" style="width: 67%"></div></div>
+            </div>
+            <div class="bar-compare">
+                <div class="bar-label"><span>Ejes principales (Gran de Gràcia)</span><span>~43 €/m²</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width: 96%; background: var(--accent-gold)"></div></div>
+            </div>
+        </section>
+
+        <!-- 04. Licencia -->
+        <section class="section">
+            <div class="section-label">04 — Licencia C3 Mixta y Plan de Usos</div>
+            <h2 class="section-title">Activo de oferta nula</h2>
+            <p class="section-text">La Vila de Gràcia está catalogada como zona ZE-1A (saturada) en el Plan de Usos. No se permite la implantación de nuevas actividades de restauración. La única vía de acceso es adquirir un establecimiento existente mediante traspaso.</p>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Valor licencia "solo papel"</div>
+                    <div class="kpi-value">150-180K €</div>
+                    <div class="kpi-sub">Estimación mercado Gràcia</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Nuevas licencias C3</div>
+                    <div class="kpi-value warn">0</div>
+                    <div class="kpi-sub">Zona ZE-1A saturada</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Tipo licencia NÜA</div>
+                    <div class="kpi-value" style="font-size: 1.2rem;">C3 Mixta</div>
+                    <div class="kpi-sub">Restaurante + música</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Aforo autorizado</div>
+                    <div class="kpi-value">62</div>
+                    <div class="kpi-sub">plazas por turno</div>
+                </div>
+            </div>
+
+            <div class="callout warn">
+                <strong>Plan de Usos:</strong> Si se cancela una licencia C3 en zona ZE-1A, el derecho se pierde de forma irreversible. La licencia no es replicable, lo que la convierte en un activo escaso cuyo valor solo puede aumentar con el tiempo.
+            </div>
+        </section>
+
+        <!-- 05. NÜA vs Sector -->
+        <section class="section">
+            <div class="section-label">05 — Posicionamiento NÜA vs Sector</div>
+            <h2 class="section-title">Comparativa de métricas clave</h2>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Métrica</th>
+                                <th>NÜA</th>
+                                <th>Media sector</th>
+                                <th>Posición</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Múltiplo EBITDA</td>
+                                <td><strong>2,8x</strong></td>
+                                <td>3,6x — 5,7x</td>
+                                <td><span class="tag tag-green">Muy competitivo</span></td>
+                            </tr>
+                            <tr>
+                                <td>Margen EBITDA</td>
+                                <td><strong>~21%</strong></td>
+                                <td>5% — 15%</td>
+                                <td><span class="tag tag-green">Superior</span></td>
+                            </tr>
+                            <tr>
+                                <td>Food & Bev Cost</td>
+                                <td><strong>23-25%</strong></td>
+                                <td>28% — 35%</td>
+                                <td><span class="tag tag-green">Eficiente</span></td>
+                            </tr>
+                            <tr>
+                                <td>Ticket medio / comensal</td>
+                                <td><strong>27,08 €</strong></td>
+                                <td>15-20 € (Gràcia)</td>
+                                <td><span class="tag tag-green">Franja alta</span></td>
+                            </tr>
+                            <tr>
+                                <td>Ticket medio / mesa</td>
+                                <td><strong>84,61 €</strong></td>
+                                <td>40-60 € (media BCN)</td>
+                                <td><span class="tag tag-green">Premium</span></td>
+                            </tr>
+                            <tr>
+                                <td>Facturación / m²</td>
+                                <td><strong>5.695 €</strong></td>
+                                <td>2.000-3.500 €</td>
+                                <td><span class="tag tag-green">Top percentil</span></td>
+                            </tr>
+                            <tr>
+                                <td>Alquiler / m²</td>
+                                <td><strong>19,56 €</strong></td>
+                                <td>25-45 € (Gràcia)</td>
+                                <td><span class="tag tag-green">Bajo mercado</span></td>
+                            </tr>
+                            <tr>
+                                <td>Veri*factu</td>
+                                <td><strong>100%</strong></td>
+                                <td>8% sector</td>
+                                <td><span class="tag tag-green">Cumple</span></td>
+                            </tr>
+                            <tr>
+                                <td>Payback</td>
+                                <td><strong>2,8 años</strong></td>
+                                <td>4-8 años</td>
+                                <td><span class="tag tag-green">Rápido</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06. Valoración -->
+        <section class="section">
+            <div class="section-label">06 — Desglose de Valoración</div>
+            <h2 class="section-title">Justificación del precio</h2>
+
+            <div class="card">
+                <div class="card-title">Método de Activos (Valor Sustancial)</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Componente</th>
+                                <th>Valor estimado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Licencia C3 Mixta (Vila de Gràcia, ZE-1A)</td>
+                                <td><strong>150.000 — 180.000 €</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Equipamiento tecnológico (18 mesas Dotyk 4K)</td>
+                                <td><strong>+209.000 €</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Valor capitalizado alquiler protegido</td>
+                                <td><strong>~52.000 €</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Fondo de comercio (45K seguidores, 4.5K reseñas)</td>
+                                <td><strong>Incluido sin coste</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Equipamiento cocina industrial completa</td>
+                                <td><strong>Incluido sin coste</strong></td>
+                            </tr>
+                            <tr style="border-top: 2px solid var(--border-accent);">
+                                <td><strong>Subtotal activos</strong></td>
+                                <td><strong style="color: var(--accent-cyan);">411.000 — 441.000 €</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Pasivo laboral estimado</td>
+                                <td>-10.000 €</td>
+                            </tr>
+                            <tr style="background: rgba(0,229,255,0.05);">
+                                <td><strong style="color: var(--text-primary);">Precio de traspaso</strong></td>
+                                <td><strong style="color: var(--accent-cyan); font-size: 1.1rem;">350.000 €</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="callout green">
+                <strong>El comprador adquiere activos por valor de +411.000 € pagando 350.000 €.</strong> El fondo de comercio, la facturación recurrente y el digital equity se transfieren sin coste adicional implícito.
+            </div>
+        </section>
+
+        <!-- 07. Escenarios -->
+        <section class="section">
+            <div class="section-label">07 — Escenarios Post-Traspaso</div>
+            <h2 class="section-title">Proyecciones de facturación y retorno</h2>
+            <p class="section-text">Los costes operativos escalan con el nivel de actividad: más facturación implica más personal, más materia prima y más suministros. Los escenarios reflejan esta proporcionalidad.</p>
+
+            <div class="scenario-grid">
+                <div class="scenario-card conservative">
+                    <div class="scenario-name">Pesimista</div>
+                    <div class="scenario-revenue">620-650K €</div>
+                    <div class="scenario-detail">Continuista — sin cambios significativos en gestión ni marketing</div>
+                    <div class="scenario-detail">EBITDA est. ~130.000 €</div>
+                    <div class="scenario-payback">Payback: ~2,7 años</div>
+                </div>
+                <div class="scenario-card base">
+                    <div class="scenario-name">Realista</div>
+                    <div class="scenario-revenue">700-750K €</div>
+                    <div class="scenario-detail">Gestión profesional activa — marketing moderado, optimización turnos</div>
+                    <div class="scenario-detail">EBITDA est. ~135.000 €</div>
+                    <div class="scenario-payback">Payback: ~2,5 años</div>
+                </div>
+                <div class="scenario-card best">
+                    <div class="scenario-name">Optimista</div>
+                    <div class="scenario-revenue">850-950K €</div>
+                    <div class="scenario-detail">Patrón 2024 — marketing activo, eventos, ocupación agresiva</div>
+                    <div class="scenario-detail">EBITDA est. ~155.000 €</div>
+                    <div class="scenario-payback">Payback: ~2,2 años</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Múltiplo sobre ventas por escenario</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Escenario</th>
+                                <th>Facturación</th>
+                                <th>Precio / Ventas</th>
+                                <th>Precio / EBITDA</th>
+                                <th>Payback</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Pesimista</td>
+                                <td>620-650K €</td>
+                                <td>0,54-0,56x</td>
+                                <td>~2,7x</td>
+                                <td>~2,7 años</td>
+                            </tr>
+                            <tr class="highlight-row">
+                                <td>Realista</td>
+                                <td>700-750K €</td>
+                                <td>0,47-0,50x</td>
+                                <td>~2,6x</td>
+                                <td>~2,5 años</td>
+                            </tr>
+                            <tr>
+                                <td>Optimista</td>
+                                <td>850-950K €</td>
+                                <td>0,37-0,41x</td>
+                                <td>~2,3x</td>
+                                <td>~2,2 años</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong>Referencia sectorial:</strong> En hostelería española, los múltiplos medios se sitúan en 3,6x-5,7x EBITDA. Incluso en el escenario pesimista, NÜA cotiza a 2,7x — significativamente por debajo de la media del mercado.
+            </div>
+        </section>
+
+        <!-- 08. Mejora con inversión -->
+        <section class="section">
+            <div class="section-label">08 — Potencial de Mejora</div>
+            <h2 class="section-title">Impacto de pequeña inversión adicional</h2>
+            <p class="section-text">Con una inversión adicional modesta, el comprador puede acelerar significativamente la recuperación de la inversión y aproximarse al techo demostrado de 911.146 € (2024).</p>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Acción</th>
+                                <th>Inversión</th>
+                                <th>Impacto estimado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Reactivación marketing digital (RRSS, campañas, base 45K seguidores)</td>
+                                <td>800-1.200 €/mes</td>
+                                <td>+15-25% facturación</td>
+                            </tr>
+                            <tr>
+                                <td>Programa de eventos y reservas grupo</td>
+                                <td>~500 €/mes</td>
+                                <td>+10-15% ocupación cenas</td>
+                            </tr>
+                            <tr>
+                                <td>Optimización carta y upselling (análisis datos Dotyk)</td>
+                                <td>Coste cero (ya disponible)</td>
+                                <td>+5-8% ticket medio</td>
+                            </tr>
+                            <tr>
+                                <td>Acuerdos con plataformas (TheFork, Google Reserve)</td>
+                                <td>Variable (comisión)</td>
+                                <td>+10-20% comensales nuevos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="callout green">
+                <strong>Con ~2.000 €/mes de inversión adicional en marketing y eventos</strong>, el escenario realista se acerca al optimista. La infraestructura tecnológica ya instalada permite escalar sin CAPEX adicional significativo.
+            </div>
+        </section>
+
+        <!-- 09. Tiempo de venta -->
+        <section class="section">
+            <div class="section-label">09 — Tiempos de Mercado</div>
+            <h2 class="section-title">Tiempo estimado de cierre</h2>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Restaurante estándar BCN</div>
+                    <div class="kpi-value warn">4-8 meses</div>
+                    <div class="kpi-sub">Sin diferencial claro</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Activo premium C3 zona prime</div>
+                    <div class="kpi-value">2-4 meses</div>
+                    <div class="kpi-sub">Con licencia + operativo</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">NÜA (estimación)</div>
+                    <div class="kpi-value highlight">2-3 meses</div>
+                    <div class="kpi-sub">Licencia escasa + tech + precio</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Proceso tipo</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fase</th>
+                                <th>Duración</th>
+                                <th>Actividad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mes 1</td>
+                                <td>Semanas 1-4</td>
+                                <td>Lanzamiento, scouting de grupos de restauración y family offices</td>
+                            </tr>
+                            <tr>
+                                <td>Mes 2</td>
+                                <td>Semanas 5-8</td>
+                                <td>Visitas técnicas, auditoría de mesas interactivas y software</td>
+                            </tr>
+                            <tr>
+                                <td>Mes 3</td>
+                                <td>Semanas 9-12</td>
+                                <td>Due diligence financiera, negociación y firma</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Veri*factu -->
+        <section class="section">
+            <div class="section-label">10 — Entorno Regulatorio</div>
+            <h2 class="section-title">Veri*factu y compliance fiscal</h2>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Sector adaptado</div>
+                    <div class="kpi-value warn">8%</div>
+                    <div class="kpi-sub">De autónomos y pymes</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">NÜA</div>
+                    <div class="kpi-value highlight">100%</div>
+                    <div class="kpi-sub">Compliance total</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Sanción por incumplimiento</div>
+                    <div class="kpi-value warn">50.000 €</div>
+                    <div class="kpi-sub">Por ejercicio fiscal</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Coste adaptación</div>
+                    <div class="kpi-value">1.500-8.000 €</div>
+                    <div class="kpi-sub">Por establecimiento</div>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong>Ventaja competitiva en due diligence:</strong> La trazabilidad total de ventas (cero "cajas negras") facilita una auditoría financiera rápida y otorga seguridad jurídica total al comprador. El 92% del sector aún no cumple con Veri*factu.
+            </div>
+        </section>
+
+        <!-- 11. Perfil comprador -->
+        <section class="section">
+            <div class="section-label">11 — Perfil del Comprador Objetivo</div>
+            <h2 class="section-title">A quién va dirigido este activo</h2>
+
+            <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 8px;">🏢</div>
+                    <div class="card-title">Grupo de Restauración Organizada</div>
+                    <p style="color: var(--text-muted); font-size: 0.82rem;">Busca unidades operativas con trazabilidad total, cumplimiento Veri*factu y escalabilidad tecnológica.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 8px;">💼</div>
+                    <div class="card-title">Family Office / Inversor</div>
+                    <p style="color: var(--text-muted); font-size: 0.82rem;">Valora el ROI >30%, el payback corto (<3 años) y la transparencia operativa como activo de rendimiento.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 8px;">🍽️</div>
+                    <div class="card-title">Operador Profesional</div>
+                    <p style="color: var(--text-muted); font-size: 0.82rem;">Busca un concepto diferenciado con infraestructura lista para operar y equipo formado en el sistema.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="report-footer">
+            <p>NÜA Smart Restaurant — Análisis de Mercado y Posicionamiento Competitivo — Marzo 2026</p>
+            <p style="margin-top: 8px;">Documento interno de uso estratégico. Información sujeta a confidencialidad.</p>
+        </footer>
+
+    </div>
+</body>
+</html>
