@@ -2379,8 +2379,8 @@
                 sessionStorage.setItem('nua_code', currentCode);
                 if (currentCode === 'VICTOR2026') showAdminNav();
 
-                // Registrar acceso tras aceptar NDA
-                if (currentCode) {
+                // Registrar acceso tras aceptar NDA (excepto propietario)
+                if (currentCode && currentCode !== 'VICTOR2026') {
                     const entry = CODES[currentCode];
                     registrarAcceso(currentCode, entry ? entry.agencia : 'Desconocida');
                 }
@@ -2432,7 +2432,7 @@
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
                 if (token === 'VICTOR2026') showAdminNav();
-                registrarAcceso(token, CODES[token].agencia);
+                if (token !== 'VICTOR2026') registrarAcceso(token, CODES[token].agencia);
                 return;
             }
 
