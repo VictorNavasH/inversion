@@ -2286,7 +2286,7 @@
     </footer>
 
     <script>
-        // Access Gate + NDA
+        // Access Gate + NDA + Supabase Tracking
         (function () {
             const gate = document.getElementById('accessGate');
             const input = document.getElementById('accessCode');
@@ -2295,13 +2295,54 @@
             const ndaOverlay = document.getElementById('ndaOverlay');
             const ndaCheck = document.getElementById('ndaCheck');
             const ndaAcceptBtn = document.getElementById('ndaAcceptBtn');
-            const CODE = 'SMART2026';
+
+            const SUPABASE_URL = 'http://backend.nuasmartrestaurant.com';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE';
+
+            const CODES = {
+                'VICTOR2026': { agencia: 'Víctor Navas (propietario)' },
+                'HORUS2026': { agencia: 'Horus Solutions' },
+                'ENGEL2026': { agencia: 'Engel & Völkers' }
+            };
+
+            let currentCode = '';
+
+            async function trackAccess(codigo, agencia) {
+                try {
+                    let ip = '';
+                    try {
+                        const ipRes = await fetch('https://api.ipify.org?format=json');
+                        const ipData = await ipRes.json();
+                        ip = ipData.ip;
+                    } catch(e) {}
+
+                    await fetch(SUPABASE_URL + '/rest/v1/accesos_memorandum', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        },
+                        body: JSON.stringify({
+                            codigo: codigo,
+                            agencia: agencia,
+                            ip: ip,
+                            dispositivo: window.innerWidth < 768 ? 'mobile' : 'desktop',
+                            user_agent: navigator.userAgent,
+                            pantalla: screen.width + 'x' + screen.height,
+                            pagina: window.location.pathname
+                        })
+                    });
+                } catch(e) {}
+            }
 
             function grantAccess() {
                 ndaOverlay.classList.remove('active');
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
                 sessionStorage.setItem('nua_access', '1');
+                sessionStorage.setItem('nua_code', currentCode);
+                trackAccess(currentCode, CODES[currentCode]?.agencia || 'Desconocido');
             }
 
             function showNDA() {
@@ -2311,7 +2352,8 @@
 
             function tryAccess() {
                 const val = input.value.trim().toUpperCase();
-                if (val === CODE) {
+                if (CODES[val]) {
+                    currentCode = val;
                     showNDA();
                 } else {
                     input.classList.add('error');
@@ -2322,7 +2364,6 @@
                 }
             }
 
-            // Checkbox enables button
             ndaCheck.addEventListener('change', () => {
                 if (ndaCheck.checked) {
                     ndaAcceptBtn.classList.add('enabled');
@@ -2343,11 +2384,13 @@
                 errorMsg.classList.remove('show');
             });
 
-            // Bypass with URL token (for AI tools / direct sharing)
+            // Bypass with URL token (for Victor / AI tools)
             const params = new URLSearchParams(window.location.search);
-            if (params.get('token') === 'BYPASS2026') {
+            const token = params.get('token');
+            if (token && CODES[token]) {
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
+                trackAccess(token, CODES[token].agencia);
                 return;
             }
 

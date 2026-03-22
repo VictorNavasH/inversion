@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>NÜA — Dashboard de Accesos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0A0C10;
+            --bg-card: #181C26;
+            --accent-cyan: #02b1c4;
+            --accent-green: #49eada;
+            --accent-gold: #ff4797;
+            --text-primary: #F0F2F5;
+            --text-secondary: #9CA3B4;
+            --text-muted: #5F6880;
+            --border-color: rgba(255,255,255,0.06);
+            --border-accent: rgba(0,229,255,0.2);
+            --radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif; font-weight: 300;
+            background: var(--bg-primary); color: var(--text-primary);
+            line-height: 1.7; min-height: 100vh;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+
+        /* Auth gate */
+        .auth-gate {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; flex-direction: column; gap: 16px;
+        }
+        .auth-gate h2 { font-family: 'Outfit', sans-serif; font-size: 1.4rem; }
+        .auth-gate input {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
+            padding: 12px 20px; border-radius: 10px; color: var(--text-primary);
+            font-size: 1rem; width: 280px; text-align: center; outline: none;
+        }
+        .auth-gate input:focus { border-color: var(--accent-cyan); }
+        .auth-gate button {
+            background: var(--accent-cyan); color: #0A0C10; border: none;
+            padding: 12px 32px; border-radius: 10px; font-weight: 600;
+            cursor: pointer; font-size: 0.9rem;
+        }
+
+        /* Dashboard */
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+        .dash-header { margin-bottom: 40px; }
+        .dash-header h1 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 8px; }
+        .dash-header p { color: var(--text-muted); font-size: 0.9rem; }
+        .dash-links { display: flex; gap: 12px; margin-top: 16px; }
+        .dash-links a {
+            display: inline-block; padding: 8px 16px; border-radius: 8px;
+            background: rgba(0,229,255,0.08); border: 1px solid var(--border-accent);
+            color: var(--accent-cyan); text-decoration: none; font-size: 0.82rem;
+        }
+        .dash-links a:hover { background: rgba(0,229,255,0.15); }
+
+        /* KPIs */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .kpi-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius); padding: 20px; text-align: center;
+        }
+        .kpi-label { font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+        .kpi-value { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 700; color: var(--accent-cyan); }
+        .kpi-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* Table */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+        }
+        .card-title { font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th {
+            text-align: left; padding: 10px 14px; font-size: 0.7rem;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-muted); border-bottom: 1px solid var(--border-color);
+        }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+        tr:last-child td { border-bottom: none; }
+        .tag {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            font-size: 0.72rem; font-weight: 500;
+        }
+        .tag-cyan { background: rgba(0,229,255,0.12); color: var(--accent-cyan); }
+        .tag-green { background: rgba(73,234,218,0.12); color: var(--accent-green); }
+        .tag-pink { background: rgba(255,71,151,0.12); color: var(--accent-gold); }
+
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+        .refresh-btn {
+            background: none; border: 1px solid var(--border-color); color: var(--text-secondary);
+            padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
+            float: right;
+        }
+        .refresh-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .empty { text-align: center; padding: 40px; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Auth -->
+    <div class="auth-gate" id="authGate">
+        <h2>Dashboard de Accesos</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Solo propietario</p>
+        <input type="password" id="dashCode" placeholder="Código de acceso" autocomplete="off">
+        <button id="dashBtn">Entrar</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container dashboard" id="dashboard">
+        <div class="dash-header">
+            <h1>Dashboard de Accesos</h1>
+            <p>Control de quién accede al memorándum de inversión</p>
+            <div class="dash-links">
+                <a href="/">Memorándum</a>
+                <a href="/mercado-posicionamiento">Informe de Mercado</a>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Total accesos</div>
+                <div class="kpi-value" id="totalAccesos">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Agencias únicas</div>
+                <div class="kpi-value" id="agenciasUnicas">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Último acceso</div>
+                <div class="kpi-value" id="ultimoAcceso" style="font-size: 1rem;">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Hoy</div>
+                <div class="kpi-value" id="accesosHoy">-</div>
+            </div>
+        </div>
+
+        <!-- Por agencia -->
+        <div class="card">
+            <div class="card-title">Accesos por agencia</div>
+            <div id="agenciaStats"><div class="loading">Cargando...</div></div>
+        </div>
+
+        <!-- Log completo -->
+        <div class="card">
+            <div class="card-title">
+                Registro de accesos
+                <button class="refresh-btn" onclick="loadData()">Actualizar</button>
+            </div>
+            <div id="accessLog"><div class="loading">Cargando...</div></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'http://backend.nuasmartrestaurant.com';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE';
+
+        const OWNER_CODE = 'VICTOR2026';
+
+        // Auth
+        const authGate = document.getElementById('authGate');
+        const dashboard = document.getElementById('dashboard');
+        const dashCode = document.getElementById('dashCode');
+        const dashBtn = document.getElementById('dashBtn');
+
+        function authenticate() {
+            if (dashCode.value.trim().toUpperCase() === OWNER_CODE) {
+                authGate.style.display = 'none';
+                dashboard.classList.add('active');
+                loadData();
+            } else {
+                dashCode.style.borderColor = '#ff4797';
+                setTimeout(() => dashCode.style.borderColor = '', 500);
+            }
+        }
+
+        dashBtn.addEventListener('click', authenticate);
+        dashCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') authenticate(); });
+
+        // Tag colors per agency
+        function agencyTag(agencia) {
+            if (agencia.includes('propietario')) return '<span class="tag tag-green">' + agencia + '</span>';
+            if (agencia.includes('Horus')) return '<span class="tag tag-cyan">' + agencia + '</span>';
+            if (agencia.includes('Engel')) return '<span class="tag tag-pink">' + agencia + '</span>';
+            return '<span class="tag tag-cyan">' + agencia + '</span>';
+        }
+
+        function formatDate(d) {
+            const date = new Date(d);
+            return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+                ' ' + date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/accesos_memorandum?order=fecha.desc&limit=100', {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                    }
+                });
+                const data = await res.json();
+
+                if (!data || data.length === 0) {
+                    document.getElementById('totalAccesos').textContent = '0';
+                    document.getElementById('agenciasUnicas').textContent = '0';
+                    document.getElementById('ultimoAcceso').textContent = '-';
+                    document.getElementById('accesosHoy').textContent = '0';
+                    document.getElementById('agenciaStats').innerHTML = '<div class="empty">Sin accesos todavía</div>';
+                    document.getElementById('accessLog').innerHTML = '<div class="empty">Sin accesos todavía</div>';
+                    return;
+                }
+
+                // KPIs
+                const total = data.length;
+                const agencias = [...new Set(data.map(d => d.agencia).filter(a => a && !a.includes('propietario')))];
+                const hoy = new Date().toDateString();
+                const accesosHoy = data.filter(d => new Date(d.fecha).toDateString() === hoy).length;
+
+                document.getElementById('totalAccesos').textContent = total;
+                document.getElementById('agenciasUnicas').textContent = agencias.length;
+                document.getElementById('ultimoAcceso').textContent = formatDate(data[0].fecha);
+                document.getElementById('accesosHoy').textContent = accesosHoy;
+
+                // Stats por agencia (excluyendo propietario)
+                const stats = {};
+                data.forEach(d => {
+                    if (!d.agencia) return;
+                    if (!stats[d.agencia]) stats[d.agencia] = { count: 0, last: d.fecha };
+                    stats[d.agencia].count++;
+                });
+
+                let statsHtml = '<table><thead><tr><th>Agencia</th><th>Accesos</th><th>Último</th></tr></thead><tbody>';
+                Object.entries(stats)
+                    .filter(([k]) => !k.includes('propietario'))
+                    .sort((a, b) => b[1].count - a[1].count)
+                    .forEach(([agencia, info]) => {
+                        statsHtml += '<tr><td>' + agencyTag(agencia) + '</td><td><strong>' + info.count + '</strong></td><td>' + formatDate(info.last) + '</td></tr>';
+                    });
+                statsHtml += '</tbody></table>';
+                document.getElementById('agenciaStats').innerHTML = Object.keys(stats).filter(k => !k.includes('propietario')).length ? statsHtml : '<div class="empty">Ninguna agencia ha accedido todavía</div>';
+
+                // Log completo
+                let logHtml = '<table><thead><tr><th>Fecha</th><th>Agencia</th><th>Código</th><th>Dispositivo</th><th>IP</th></tr></thead><tbody>';
+                data.forEach(d => {
+                    logHtml += '<tr><td>' + formatDate(d.fecha) + '</td><td>' + agencyTag(d.agencia || '-') + '</td><td>' + (d.codigo || '-') + '</td><td>' + (d.dispositivo || '-') + '</td><td>' + (d.ip || '-') + '</td></tr>';
+                });
+                logHtml += '</tbody></table>';
+                document.getElementById('accessLog').innerHTML = logHtml;
+
+            } catch(e) {
+                document.getElementById('accessLog').innerHTML = '<div class="empty">Error al cargar datos: ' + e.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
