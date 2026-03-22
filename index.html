@@ -2324,49 +2324,51 @@
             const ndaCheck = document.getElementById('ndaCheck');
             const ndaAcceptBtn = document.getElementById('ndaAcceptBtn');
 
-            const SUPABASE_URL = 'http://backend.nuasmartrestaurant.com';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE';
-
+            // Códigos de acceso por agencia
             const CODES = {
                 'VICTOR2026': { agencia: 'Víctor Navas (propietario)' },
-                'HORUS2026': { agencia: 'Horus Solutions' },
-                'ENGEL2026': { agencia: 'Engel & Völkers' }
+                'HORUS2026':  { agencia: 'Horus Solutions' },
+                'ENGEL2026':  { agencia: 'Engel & Völkers' }
             };
 
-            let currentCode = '';
+            // Tracking via n8n webhook (HTTPS) → Supabase (HTTP)
+            const TRACKING_URL = 'https://n8n.nuasmartrestaurant.com/webhook/tracking-memorandum';
+
+            let currentCode = null;
 
             function showAdminNav() {
                 const adminNav = document.getElementById('navAdmin');
                 if (adminNav) adminNav.style.display = 'flex';
             }
 
-            async function trackAccess(codigo, agencia) {
+            // Registrar acceso vía n8n → Supabase
+            async function registrarAcceso(codigo, agencia) {
                 try {
-                    let ip = '';
+                    let ip = 'desconocida';
                     try {
                         const ipRes = await fetch('https://api.ipify.org?format=json');
                         const ipData = await ipRes.json();
                         ip = ipData.ip;
-                    } catch(e) {}
+                    } catch (e) {}
 
-                    await fetch(SUPABASE_URL + '/rest/v1/accesos_memorandum', {
+                    const dispositivo = window.innerWidth < 768 ? 'mobile' : 'desktop';
+
+                    await fetch(TRACKING_URL, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             codigo: codigo,
                             agencia: agencia,
                             ip: ip,
-                            dispositivo: window.innerWidth < 768 ? 'mobile' : 'desktop',
+                            dispositivo: dispositivo,
                             user_agent: navigator.userAgent,
                             pantalla: screen.width + 'x' + screen.height,
                             pagina: window.location.pathname
                         })
                     });
-                } catch(e) {}
+                } catch (e) {
+                    console.warn('Tracking error:', e);
+                }
             }
 
             function grantAccess() {
@@ -2376,7 +2378,12 @@
                 sessionStorage.setItem('nua_access', '1');
                 sessionStorage.setItem('nua_code', currentCode);
                 if (currentCode === 'VICTOR2026') showAdminNav();
-                trackAccess(currentCode, CODES[currentCode]?.agencia || 'Desconocido');
+
+                // Registrar acceso tras aceptar NDA
+                if (currentCode) {
+                    const entry = CODES[currentCode];
+                    registrarAcceso(currentCode, entry ? entry.agencia : 'Desconocida');
+                }
             }
 
             function showNDA() {
@@ -2425,7 +2432,7 @@
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
                 if (token === 'VICTOR2026') showAdminNav();
-                trackAccess(token, CODES[token].agencia);
+                registrarAcceso(token, CODES[token].agencia);
                 return;
             }
 
