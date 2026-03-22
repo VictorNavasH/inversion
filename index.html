@@ -198,6 +198,30 @@
             background: var(--accent-cyan-dim);
         }
 
+        .nav-admin {
+            display: flex;
+            gap: 6px;
+            margin-left: 12px;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-admin-link {
+            color: var(--accent-green) !important;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(73,234,218,0.08);
+            border: 1px solid rgba(73,234,218,0.2);
+            transition: all 0.2s ease;
+        }
+
+        .nav-admin-link:hover {
+            background: rgba(73,234,218,0.15);
+        }
+
         /* ─── Hero ─── */
         .hero {
             padding: 130px 0 70px;
@@ -1590,6 +1614,10 @@
                 <a href="#precio">Precio</a>
                 <a href="#contacto">Contacto</a>
             </div>
+            <div class="nav-admin" id="navAdmin" style="display:none;">
+                <a href="/mercado-posicionamiento" class="nav-admin-link">Informe Mercado</a>
+                <a href="/dashboard" class="nav-admin-link">Dashboard</a>
+            </div>
         </div>
     </nav>
 
@@ -2307,6 +2335,11 @@
 
             let currentCode = '';
 
+            function showAdminNav() {
+                const adminNav = document.getElementById('navAdmin');
+                if (adminNav) adminNav.style.display = 'flex';
+            }
+
             async function trackAccess(codigo, agencia) {
                 try {
                     let ip = '';
@@ -2342,6 +2375,7 @@
                 document.body.classList.remove('locked');
                 sessionStorage.setItem('nua_access', '1');
                 sessionStorage.setItem('nua_code', currentCode);
+                if (currentCode === 'VICTOR2026') showAdminNav();
                 trackAccess(currentCode, CODES[currentCode]?.agencia || 'Desconocido');
             }
 
@@ -2390,6 +2424,7 @@
             if (token && CODES[token]) {
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
+                if (token === 'VICTOR2026') showAdminNav();
                 trackAccess(token, CODES[token].agencia);
                 return;
             }
@@ -2398,6 +2433,7 @@
             if (sessionStorage.getItem('nua_access') === '1') {
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
+                if (sessionStorage.getItem('nua_code') === 'VICTOR2026') showAdminNav();
             }
         })();
 
