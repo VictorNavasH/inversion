@@ -1758,16 +1758,26 @@
                 <h2 class="section-title">Evolución de ingresos</h2>
 
                 <!-- Annual summary cards -->
-                <div class="chart-summary-row" style="margin-bottom: 24px;">
+                <div class="chart-summary-row" style="margin-bottom: 24px; flex-wrap: wrap;">
+                    <div class="chart-summary-card">
+                        <div class="label">2022</div>
+                        <div class="value">599.727 €</div>
+                        <div class="sub">Media mensual: 49.977 €</div>
+                    </div>
+                    <div class="chart-summary-card">
+                        <div class="label">2023</div>
+                        <div class="value">849.574 €</div>
+                        <div class="sub">Media mensual: 70.798 € · <span style="color: #4ade80;">+41,6%</span></div>
+                    </div>
                     <div class="chart-summary-card">
                         <div class="label">2024</div>
                         <div class="value">911.146 €</div>
-                        <div class="sub">Media mensual: 75.929 € · Ticket medio: 87,41 €</div>
+                        <div class="sub">Media mensual: 75.929 € · <span style="color: #4ade80;">+7,2%</span></div>
                     </div>
                     <div class="chart-summary-card">
                         <div class="label">2025</div>
                         <div class="value">598.716 €</div>
-                        <div class="sub">Media mensual: 49.893 € · Ticket medio: 91,20 €</div>
+                        <div class="sub">Media mensual: 49.893 € · <span style="color: var(--text-muted); font-style: italic;">menor dedicación</span></div>
                     </div>
                 </div>
 
@@ -1776,6 +1786,14 @@
                     <div class="chart-header">
                         <h3>Facturación mensual comparativa</h3>
                         <div class="chart-legend">
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: rgba(255,255,255,0.15);"></div>
+                                2022
+                            </div>
+                            <div class="chart-legend-item">
+                                <div class="chart-legend-dot" style="background: rgba(2,177,196,0.4);"></div>
+                                2023
+                            </div>
                             <div class="chart-legend-item">
                                 <div class="chart-legend-dot" style="background: #02b1c4;"></div>
                                 2024
@@ -2415,6 +2433,8 @@
 
         const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+        const data2022 = [41184, 40196, 48155, 63408, 52577, 38145, 55326, 59927, 44216, 50293, 38335, 67965];
+        const data2023 = [69785, 56644, 51340, 61469, 48941, 42521, 69514, 83123, 76480, 94272, 74741, 120744];
         const data2024 = [94160, 80198, 104065, 64513, 69022, 61615, 71462, 98461, 64900, 57963, 66130, 78658];
         const data2025 = [62043, 55684, 53592, 61491, 43340, 37462, 53076, 63368, 37421, 39748, 38450, 53041];
 
@@ -2426,6 +2446,22 @@
                 data: {
                     labels: months,
                     datasets: [{
+                        label: '2022',
+                        data: data2022,
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        borderColor: 'rgba(255, 255, 255, 0.15)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }, {
+                        label: '2023',
+                        data: data2023,
+                        backgroundColor: 'rgba(2, 177, 196, 0.35)',
+                        borderColor: 'rgba(2, 177, 196, 0.5)',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        borderSkipped: false
+                    }, {
                         label: '2024',
                         data: data2024,
                         backgroundColor: 'rgba(2, 177, 196, 0.85)',
@@ -2473,7 +2509,7 @@
                                 callback: v => (v / 1000).toFixed(0) + 'K €'
                             },
                             beginAtZero: false,
-                            min: 30000
+                            min: 20000
                         }
                     }
                 }
