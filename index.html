@@ -1861,6 +1861,34 @@
             </div>
         </section>
 
+        <!-- Resumen económico (solo visible en ficha básica) -->
+        <section class="section" id="resumenEconomico" style="display: none;">
+            <div class="container">
+                <div class="section-label">03 — Resumen Económico</div>
+                <h2 class="section-title">Datos clave del negocio</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="font-size: 1.4rem;">💰</div>
+                        <div class="kpi-value cyan" style="font-size: 1.6rem;">~65.500 €/mes</div>
+                        <div class="kpi-label">Facturación media mensual (2022–2024)</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="font-size: 1.4rem;">🍽️</div>
+                        <div class="kpi-value cyan" style="font-size: 1.6rem;">~85 €</div>
+                        <div class="kpi-label">Ticket medio / mesa</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="font-size: 1.4rem;">👤</div>
+                        <div class="kpi-value cyan" style="font-size: 1.6rem;">~27 €</div>
+                        <div class="kpi-label">Ticket medio / comensal</div>
+                    </div>
+                </div>
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 20px; font-style: italic;">
+                    Información financiera detallada disponible bajo solicitud.
+                </p>
+            </div>
+        </section>
+
         <!-- 03 Facturación -->
         <section class="section" id="facturacion">
             <div class="container">
@@ -2374,11 +2402,13 @@
             const ndaAcceptBtn = document.getElementById('ndaAcceptBtn');
 
             // Códigos de acceso por agencia
+            // tipo: 'completa' (por defecto) | 'basica' (ficha reducida sin datos económicos detallados)
             const CODES = {
-                'VICTOR2026': { agencia: 'Víctor Navas (propietario)' },
-                'HORUS2026':  { agencia: 'Horus Solutions' },
-                'ENGEL2026':  { agencia: 'Engel & Völkers' },
-                'JSRE2026':   { agencia: 'JS Real Estate' }
+                'VICTOR2026': { agencia: 'Víctor Navas (propietario)', tipo: 'completa' },
+                'HORUS2026':  { agencia: 'Horus Solutions', tipo: 'completa' },
+                'ENGEL2026':  { agencia: 'Engel & Völkers', tipo: 'completa' },
+                'JSRE2026':   { agencia: 'JS Real Estate', tipo: 'completa' },
+                'DHB2026':    { agencia: 'DHB Inversors', tipo: 'basica' }
             };
 
             // Tracking via Vercel serverless → Supabase
@@ -2389,6 +2419,29 @@
             function showAdminNav() {
                 const adminNav = document.getElementById('navAdmin');
                 if (adminNav) adminNav.style.display = 'flex';
+            }
+
+            function applyBasicMode() {
+                // Ocultar secciones financieras detalladas
+                ['facturacion', 'gastos', 'indicadores', 'activos'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                // Mostrar resumen económico simplificado
+                const resumen = document.getElementById('resumenEconomico');
+                if (resumen) resumen.style.display = '';
+                // Actualizar nav
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === '#facturacion') {
+                        link.setAttribute('href', '#resumenEconomico');
+                        link.textContent = 'Resumen';
+                    }
+                    if (href === '#indicadores' || href === '#activos') {
+                        link.style.display = 'none';
+                    }
+                });
+                sessionStorage.setItem('nua_tipo', 'basica');
             }
 
             // Registrar acceso vía n8n → Supabase
@@ -2429,9 +2482,12 @@
                 sessionStorage.setItem('nua_code', currentCode);
                 if (currentCode === 'VICTOR2026') showAdminNav();
 
+                // Aplicar ficha básica si corresponde
+                const entry = CODES[currentCode];
+                if (entry && entry.tipo === 'basica') applyBasicMode();
+
                 // Registrar acceso tras aceptar NDA (excepto propietario)
                 if (currentCode && currentCode !== 'VICTOR2026') {
-                    const entry = CODES[currentCode];
                     registrarAcceso(currentCode, entry ? entry.agencia : 'Desconocida');
                 }
             }
@@ -2482,6 +2538,7 @@
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
                 if (token === 'VICTOR2026') showAdminNav();
+                if (CODES[token].tipo === 'basica') applyBasicMode();
                 if (token !== 'VICTOR2026') registrarAcceso(token, CODES[token].agencia);
                 return;
             }
@@ -2491,6 +2548,7 @@
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
                 if (sessionStorage.getItem('nua_code') === 'VICTOR2026') showAdminNav();
+                if (sessionStorage.getItem('nua_tipo') === 'basica') applyBasicMode();
             }
         })();
 
