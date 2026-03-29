@@ -91,6 +91,8 @@
         .tag-cyan { background: rgba(0,229,255,0.12); color: var(--accent-cyan); }
         .tag-green { background: rgba(73,234,218,0.12); color: var(--accent-green); }
         .tag-pink { background: rgba(255,71,151,0.12); color: var(--accent-gold); }
+        .tag-completa { background: rgba(73,234,218,0.15); color: #49eada; }
+        .tag-basica { background: rgba(255,193,7,0.15); color: #ffc107; }
 
         .loading { text-align: center; padding: 40px; color: var(--text-muted); }
         .refresh-btn {
@@ -170,6 +172,18 @@
 
         const OWNER_CODE = 'VICTOR2026';
 
+        // Mapping of codes to version type
+        const CODE_TYPES = {
+            'ENGEL2026': 'completa',
+            'HORUS2026': 'completa',
+            'JSRE2026': 'completa',
+            'DHB2026': 'basica',
+            'LM2026': 'basica',
+            'BG2026': 'basica',
+            'FCD2026': 'basica',
+            'KODISOFT2026': 'completa'
+        };
+
         // Auth
         const authGate = document.getElementById('authGate');
         const dashboard = document.getElementById('dashboard');
@@ -206,15 +220,31 @@
             return '<span class="tag tag-cyan">' + agencia + '</span>';
         }
 
+        function versionTag(codigo) {
+            const tipo = CODE_TYPES[codigo];
+            if (!tipo) return '<span style="color:var(--text-muted);">-</span>';
+            if (tipo === 'completa') return '<span class="tag tag-completa">completa</span>';
+            return '<span class="tag tag-basica">b\u00e1sica</span>';
+        }
+
         function formatDate(d) {
             const date = new Date(d);
-            return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
-                ' ' + date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Madrid' }) +
+                ' ' + date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+        }
+
+        function formatDuracion(d) {
+            if (!d.duracion_segundos && !d.duracion_minutos) return '-';
+            const seg = d.duracion_segundos || Math.round((d.duracion_minutos || 0) * 60);
+            if (seg < 60) return seg + 's';
+            const min = Math.floor(seg / 60);
+            const secRest = seg % 60;
+            return min + 'min ' + secRest + 's';
         }
 
         async function loadData() {
             try {
-                const res = await fetch(SUPABASE_URL + '/rest/v1/accesos_memorandum?order=fecha.desc&limit=100', {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/accesos_memorandum?order=fecha.desc&limit=200', {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
@@ -222,49 +252,83 @@
                 });
                 const data = await res.json();
 
+                // Separate access records from duration records
+                const accesos = data.filter(d => d.tipo !== 'duracion');
+                const duraciones = data.filter(d => d.tipo === 'duracion');
+
                 if (!data || data.length === 0) {
                     document.getElementById('totalAccesos').textContent = '0';
                     document.getElementById('agenciasUnicas').textContent = '0';
                     document.getElementById('ultimoAcceso').textContent = '-';
                     document.getElementById('accesosHoy').textContent = '0';
-                    document.getElementById('agenciaStats').innerHTML = '<div class="empty">Sin accesos todavía</div>';
-                    document.getElementById('accessLog').innerHTML = '<div class="empty">Sin accesos todavía</div>';
+                    document.getElementById('agenciaStats').innerHTML = '<div class="empty">Sin accesos todav\u00eda</div>';
+                    document.getElementById('accessLog').innerHTML = '<div class="empty">Sin accesos todav\u00eda</div>';
                     return;
                 }
 
-                // KPIs
-                const total = data.length;
-                const agencias = [...new Set(data.map(d => d.agencia).filter(a => a && !a.includes('propietario')))];
-                const hoy = new Date().toDateString();
-                const accesosHoy = data.filter(d => new Date(d.fecha).toDateString() === hoy).length;
+                // KPIs - based on access records only
+                const total = accesos.length;
+                const agencias = [...new Set(accesos.map(d => d.agencia).filter(a => a && !a.includes('propietario')))];
+                const hoy = new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' });
+                const accesosHoy = accesos.filter(d => new Date(d.fecha).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' }) === hoy).length;
 
                 document.getElementById('totalAccesos').textContent = total;
                 document.getElementById('agenciasUnicas').textContent = agencias.length;
-                document.getElementById('ultimoAcceso').textContent = formatDate(data[0].fecha);
+                document.getElementById('ultimoAcceso').textContent = accesos.length ? formatDate(accesos[0].fecha) : '-';
                 document.getElementById('accesosHoy').textContent = accesosHoy;
+
+                // Build a map of durations by code+approximate time for matching
+                const duracionMap = {};
+                duraciones.forEach(d => {
+                    const key = d.codigo;
+                    if (!duracionMap[key]) duracionMap[key] = [];
+                    duracionMap[key].push(d);
+                });
 
                 // Stats por agencia (excluyendo propietario)
                 const stats = {};
-                data.forEach(d => {
+                accesos.forEach(d => {
                     if (!d.agencia) return;
-                    if (!stats[d.agencia]) stats[d.agencia] = { count: 0, last: d.fecha };
+                    if (!stats[d.agencia]) stats[d.agencia] = { count: 0, last: d.fecha, codigo: d.codigo };
                     stats[d.agencia].count++;
                 });
 
-                let statsHtml = '<table><thead><tr><th>Agencia</th><th>Accesos</th><th>Último</th></tr></thead><tbody>';
+                let statsHtml = '<table><thead><tr><th>Agencia</th><th>Versi\u00f3n</th><th>Accesos</th><th>\u00daltimo</th></tr></thead><tbody>';
                 Object.entries(stats)
                     .filter(([k]) => !k.includes('propietario'))
                     .sort((a, b) => b[1].count - a[1].count)
                     .forEach(([agencia, info]) => {
-                        statsHtml += '<tr><td>' + agencyTag(agencia) + '</td><td><strong>' + info.count + '</strong></td><td>' + formatDate(info.last) + '</td></tr>';
+                        statsHtml += '<tr><td>' + agencyTag(agencia) + '</td><td>' + versionTag(info.codigo) + '</td><td><strong>' + info.count + '</strong></td><td>' + formatDate(info.last) + '</td></tr>';
                     });
                 statsHtml += '</tbody></table>';
-                document.getElementById('agenciaStats').innerHTML = Object.keys(stats).filter(k => !k.includes('propietario')).length ? statsHtml : '<div class="empty">Ninguna agencia ha accedido todavía</div>';
+                document.getElementById('agenciaStats').innerHTML = Object.keys(stats).filter(k => !k.includes('propietario')).length ? statsHtml : '<div class="empty">Ninguna agencia ha accedido todav\u00eda</div>';
+
+                // Find closest duration for an access record
+                function findDuracion(acceso) {
+                    const codeDurs = duracionMap[acceso.codigo];
+                    if (!codeDurs || codeDurs.length === 0) return null;
+                    const accesoTime = new Date(acceso.fecha).getTime();
+                    // Find duration record closest to (and after) the access
+                    let best = null;
+                    let bestDiff = Infinity;
+                    codeDurs.forEach(dur => {
+                        const durTime = new Date(dur.fecha).getTime();
+                        const diff = durTime - accesoTime;
+                        // Duration should be after or near access time, within 24h
+                        if (diff >= -60000 && diff < 86400000 && diff < bestDiff) {
+                            bestDiff = diff;
+                            best = dur;
+                        }
+                    });
+                    return best;
+                }
 
                 // Log completo
-                let logHtml = '<table><thead><tr><th>Fecha</th><th>Agencia</th><th>Código</th><th>Dispositivo</th><th>IP</th></tr></thead><tbody>';
-                data.forEach(d => {
-                    logHtml += '<tr><td>' + formatDate(d.fecha) + '</td><td>' + agencyTag(d.agencia || '-') + '</td><td>' + (d.codigo || '-') + '</td><td>' + (d.dispositivo || '-') + '</td><td>' + (d.ip || '-') + '</td></tr>';
+                let logHtml = '<table><thead><tr><th>Fecha y hora</th><th>Agencia</th><th>Versi\u00f3n</th><th>Duraci\u00f3n</th><th>C\u00f3digo</th><th>Dispositivo</th><th>IP</th></tr></thead><tbody>';
+                accesos.forEach(d => {
+                    const dur = findDuracion(d);
+                    const durText = dur ? formatDuracion(dur) : '-';
+                    logHtml += '<tr><td>' + formatDate(d.fecha) + '</td><td>' + agencyTag(d.agencia || '-') + '</td><td>' + versionTag(d.codigo) + '</td><td>' + durText + '</td><td>' + (d.codigo || '-') + '</td><td>' + (d.dispositivo || '-') + '</td><td>' + (d.ip || '-') + '</td></tr>';
                 });
                 logHtml += '</tbody></table>';
                 document.getElementById('accessLog').innerHTML = logHtml;

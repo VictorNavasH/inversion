@@ -2534,6 +2534,41 @@
                 }
             }
 
+            // --- Session duration tracking ---
+            const _nuaSessionStart = Date.now();
+            let _nuaDuracionEnviada = false;
+
+            function enviarDuracion() {
+                if (_nuaDuracionEnviada) return;
+                _nuaDuracionEnviada = true;
+                const savedCode = sessionStorage.getItem('nua_code');
+                if (!savedCode || savedCode === 'VICTOR2026') return;
+                const entry = CODES[savedCode];
+                if (!entry) return;
+                const duracionSeg = Math.round((Date.now() - _nuaSessionStart) / 1000);
+                const duracionMin = (duracionSeg / 60).toFixed(1);
+                const payload = JSON.stringify({
+                    codigo: savedCode,
+                    agencia: entry.agencia,
+                    tipo: 'duracion',
+                    duracion_segundos: duracionSeg,
+                    duracion_minutos: parseFloat(duracionMin),
+                    pagina: window.location.pathname
+                });
+                // Use sendBeacon for reliability on page unload
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon(TRACKING_URL, blob);
+                } else {
+                    fetch(TRACKING_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true });
+                }
+            }
+
+            window.addEventListener('beforeunload', enviarDuracion);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') enviarDuracion();
+            });
+
             function grantAccess() {
                 ndaOverlay.classList.remove('active');
                 gate.classList.add('hidden');
@@ -2613,6 +2648,11 @@
                 if (savedCode === 'VICTOR2026') showAdminNav();
                 if (savedCode === 'KODISOFT2026') showInformeOnly();
                 if (sessionStorage.getItem('nua_tipo') === 'basica') applyBasicMode();
+                // Track every visit, even re-visits within the same session
+                if (savedCode && savedCode !== 'VICTOR2026') {
+                    const entry = CODES[savedCode];
+                    if (entry) registrarAcceso(savedCode, entry.agencia);
+                }
             }
         })();
 
