@@ -1615,8 +1615,8 @@
                 <a href="#contacto">Contacto</a>
             </div>
             <div class="nav-admin" id="navAdmin" style="display:none;">
-                <a href="/mercado-posicionamiento" class="nav-admin-link">Informe Mercado</a>
-                <a href="/dashboard" class="nav-admin-link">Dashboard</a>
+                <a href="/mercado-posicionamiento" class="nav-admin-link" id="linkInforme">Informe Mercado</a>
+                <a href="/dashboard" class="nav-admin-link" id="linkDashboard">Dashboard</a>
             </div>
         </div>
     </nav>
@@ -2474,6 +2474,13 @@
                 if (adminNav) adminNav.style.display = 'flex';
             }
 
+            function showInformeOnly() {
+                const adminNav = document.getElementById('navAdmin');
+                const linkDashboard = document.getElementById('linkDashboard');
+                if (adminNav) adminNav.style.display = 'flex';
+                if (linkDashboard) linkDashboard.style.display = 'none';
+            }
+
             function applyBasicMode() {
                 // Ocultar secciones financieras detalladas
                 ['facturacion', 'gastos', 'indicadores', 'activos'].forEach(id => {
@@ -2534,7 +2541,7 @@
                 sessionStorage.setItem('nua_access', '1');
                 sessionStorage.setItem('nua_code', currentCode);
                 if (currentCode === 'VICTOR2026') showAdminNav();
-                if (currentCode === 'KODISOFT2026') showAdminNav();
+                if (currentCode === 'KODISOFT2026') showInformeOnly();
 
                 // Aplicar ficha básica si corresponde
                 const entry = CODES[currentCode];
@@ -2591,7 +2598,8 @@
             if (token && CODES[token]) {
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
-                if (token === 'VICTOR2026' || token === 'KODISOFT2026') showAdminNav();
+                if (token === 'VICTOR2026') showAdminNav();
+                if (token === 'KODISOFT2026') showInformeOnly();
                 if (CODES[token].tipo === 'basica') applyBasicMode();
                 if (token !== 'VICTOR2026') registrarAcceso(token, CODES[token].agencia);
                 return;
@@ -2602,7 +2610,8 @@
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
                 const savedCode = sessionStorage.getItem('nua_code');
-                if (savedCode === 'VICTOR2026' || savedCode === 'KODISOFT2026') showAdminNav();
+                if (savedCode === 'VICTOR2026') showAdminNav();
+                if (savedCode === 'KODISOFT2026') showInformeOnly();
                 if (sessionStorage.getItem('nua_tipo') === 'basica') applyBasicMode();
             }
         })();
