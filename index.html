@@ -2460,7 +2460,8 @@
                 'DHB2026':    { agencia: 'DHB Inversors', tipo: 'basica' },
                 'LM2026':     { agencia: 'Laborde Marcet', tipo: 'basica' },
                 'BG2026':     { agencia: 'Busquets Galvez', tipo: 'basica' },
-                'FCD2026':    { agencia: 'Forcadell', tipo: 'basica' }
+                'FCD2026':    { agencia: 'Forcadell', tipo: 'basica' },
+                'KODISOFT2026': { agencia: 'Kodisoft', tipo: 'completa' }
             };
 
             // Tracking via Vercel serverless → Supabase
@@ -2533,6 +2534,7 @@
                 sessionStorage.setItem('nua_access', '1');
                 sessionStorage.setItem('nua_code', currentCode);
                 if (currentCode === 'VICTOR2026') showAdminNav();
+                if (currentCode === 'KODISOFT2026') showAdminNav();
 
                 // Aplicar ficha básica si corresponde
                 const entry = CODES[currentCode];
@@ -2589,7 +2591,7 @@
             if (token && CODES[token]) {
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
-                if (token === 'VICTOR2026') showAdminNav();
+                if (token === 'VICTOR2026' || token === 'KODISOFT2026') showAdminNav();
                 if (CODES[token].tipo === 'basica') applyBasicMode();
                 if (token !== 'VICTOR2026') registrarAcceso(token, CODES[token].agencia);
                 return;
@@ -2599,7 +2601,8 @@
             if (sessionStorage.getItem('nua_access') === '1') {
                 gate.classList.add('hidden');
                 document.body.classList.remove('locked');
-                if (sessionStorage.getItem('nua_code') === 'VICTOR2026') showAdminNav();
+                const savedCode = sessionStorage.getItem('nua_code');
+                if (savedCode === 'VICTOR2026' || savedCode === 'KODISOFT2026') showAdminNav();
                 if (sessionStorage.getItem('nua_tipo') === 'basica') applyBasicMode();
             }
         })();
