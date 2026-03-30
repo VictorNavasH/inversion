@@ -227,12 +227,12 @@
         }
 
         // Tag helpers
-        // Agencias con acuerdo firmado (rosa)
-        const FIRMADAS = ['JS Real Estate', 'Engel & Völkers'];
-
+        // Agencias firmadas (se carga dinámicamente desde PERMISSIONS)
         function agencyTag(agencia) {
             if (agencia.includes('propietario')) return '<span class="tag tag-green">' + agencia + '</span>';
-            if (FIRMADAS.some(f => agencia.includes(f))) return '<span class="tag tag-pink">' + agencia + ' ✓</span>';
+            // Check if firmado in PERMISSIONS
+            const perm = Object.values(PERMISSIONS).find(p => p.agencia === agencia);
+            if (perm && perm.firmado) return '<span class="tag tag-pink">' + agencia + ' \u2713</span>';
             return '<span class="tag tag-cyan">' + agencia + '</span>';
         }
 
@@ -267,7 +267,7 @@
         // ===== PERMISSIONS PANEL =====
         async function loadPermissions() {
             try {
-                const res = await fetch(SUPABASE_URL + '/rest/v1/agency_permissions?select=codigo,agencia,tipo&order=agencia.asc', {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/agency_permissions?select=codigo,agencia,tipo,firmado&order=agencia.asc', {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
@@ -282,7 +282,7 @@
                 // Render table (exclude owner)
                 const agencies = rows.filter(r => r.codigo !== 'VICTOR2026');
 
-                let html = '<table><thead><tr><th>Agencia</th><th>C\u00f3digo</th><th>Nivel actual</th><th>Cambiar</th></tr></thead><tbody>';
+                let html = '<table><thead><tr><th>Agencia</th><th>C\u00f3digo</th><th>Nivel</th><th>Cambiar</th><th>Firmado</th></tr></thead><tbody>';
                 agencies.forEach(a => {
                     const tipos = ['basica', 'completa', 'informe_mercado', 'desactivado'];
                     const labels = ['B\u00e1sica', 'Completa', 'Informe', 'Off'];
@@ -293,7 +293,11 @@
                     });
                     toggles += '<span class="save-indicator" id="save-' + a.codigo + '">\u2713 Guardado</span></div>';
 
-                    html += '<tr><td>' + agencyTag(a.agencia) + '</td><td style="font-size:0.75rem;color:var(--text-muted);">' + a.codigo + '</td><td>' + versionTag(a.tipo) + '</td><td>' + toggles + '</td></tr>';
+                    const firmadoBtn = a.firmado
+                        ? '<button class="toggle-btn active-completa" onclick="toggleFirmado(\'' + a.codigo + '\', false)" style="min-width:50px;">\u2713 S\u00ed</button>'
+                        : '<button class="toggle-btn" onclick="toggleFirmado(\'' + a.codigo + '\', true)" style="min-width:50px;">No</button>';
+
+                    html += '<tr><td>' + agencyTag(a.agencia) + '</td><td style="font-size:0.75rem;color:var(--text-muted);">' + a.codigo + '</td><td>' + versionTag(a.tipo) + '</td><td>' + toggles + '</td><td>' + firmadoBtn + '</td></tr>';
                 });
                 html += '</tbody></table>';
                 document.getElementById('permissionsPanel').innerHTML = html;
@@ -331,6 +335,27 @@
                 }
             } catch (e) {
                 console.error('Error updating permission:', e);
+            }
+        }
+
+        async function toggleFirmado(codigo, firmado) {
+            try {
+                const res = await fetch(
+                    SUPABASE_URL + '/rest/v1/agency_permissions?codigo=eq.' + codigo,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({ firmado: firmado, updated_at: new Date().toISOString() })
+                    }
+                );
+                if (res.ok) await loadPermissions();
+            } catch (e) {
+                console.error('Error toggling firmado:', e);
             }
         }
 
