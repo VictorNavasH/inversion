@@ -227,10 +227,12 @@
         }
 
         // Tag helpers
+        // Agencias con acuerdo firmado (rosa)
+        const FIRMADAS = ['JS Real Estate', 'Engel & Völkers'];
+
         function agencyTag(agencia) {
             if (agencia.includes('propietario')) return '<span class="tag tag-green">' + agencia + '</span>';
-            if (agencia.includes('Horus')) return '<span class="tag tag-cyan">' + agencia + '</span>';
-            if (agencia.includes('Engel')) return '<span class="tag tag-pink">' + agencia + '</span>';
+            if (FIRMADAS.some(f => agencia.includes(f))) return '<span class="tag tag-pink">' + agencia + ' ✓</span>';
             return '<span class="tag tag-cyan">' + agencia + '</span>';
         }
 
