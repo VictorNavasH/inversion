@@ -2456,8 +2456,8 @@
             const ndaCheck = document.getElementById('ndaCheck');
             const ndaAcceptBtn = document.getElementById('ndaAcceptBtn');
 
-            // Códigos de acceso por agencia
-            // tipo: 'completa' (por defecto) | 'basica' (ficha reducida sin datos económicos detallados)
+            // Códigos de acceso por agencia (fallback — se sobreescriben con Supabase)
+            // tipo: 'completa' | 'basica' | 'informe_mercado' | 'desactivado'
             const CODES = {
                 'VICTOR2026': { agencia: 'Víctor Navas (propietario)', tipo: 'completa' },
                 'HORUS2026':  { agencia: 'Horus Solutions', tipo: 'completa' },
@@ -2467,10 +2467,30 @@
                 'LM2026':     { agencia: 'Laborde Marcet', tipo: 'basica' },
                 'BG2026':     { agencia: 'Busquets Galvez', tipo: 'basica' },
                 'FCD2026':    { agencia: 'Forcadell', tipo: 'basica' },
-                'KODISOFT2026': { agencia: 'Kodisoft', tipo: 'completa' },
+                'KODISOFT2026': { agencia: 'Kodisoft', tipo: 'informe_mercado' },
                 'TGL2026':    { agencia: 'Grupo Tragaluz', tipo: 'basica' },
                 'GG2026':     { agencia: 'GG Real Estate Barcelona', tipo: 'basica' }
             };
+
+            // Cargar permisos dinámicos desde Supabase
+            let _codesReady = (async function loadDynamicPermissions() {
+                try {
+                    const res = await fetch('https://backend.nuasmartrestaurant.com/rest/v1/agency_permissions?select=codigo,agencia,tipo', {
+                        headers: {
+                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE'
+                        }
+                    });
+                    if (res.ok) {
+                        const rows = await res.json();
+                        rows.forEach(r => {
+                            CODES[r.codigo] = { agencia: r.agencia, tipo: r.tipo };
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Using fallback CODES:', e);
+                }
+            })();
 
             // Tracking via Vercel serverless → Supabase
             const TRACKING_URL = '/api/tracking';
@@ -2586,6 +2606,17 @@
                 if (document.visibilityState === 'hidden') enviarDuracion();
             });
 
+            function applyAccessLevel(code) {
+                const entry = CODES[code];
+                if (!entry) return;
+                if (entry.tipo === 'basica') applyBasicMode();
+                if (entry.tipo === 'informe_mercado') showInformeOnly();
+                if (entry.tipo === 'desactivado') {
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#5F6880;font-family:Inter,sans-serif;">Acceso desactivado. Contacte con el propietario.</div>';
+                }
+                sessionStorage.setItem('nua_tipo', entry.tipo);
+            }
+
             function grantAccess() {
                 ndaOverlay.classList.remove('active');
                 gate.classList.add('hidden');
@@ -2593,13 +2624,11 @@
                 sessionStorage.setItem('nua_access', '1');
                 sessionStorage.setItem('nua_code', currentCode);
                 if (currentCode === 'VICTOR2026') showAdminNav();
-                if (currentCode === 'KODISOFT2026') showInformeOnly();
 
-                // Aplicar ficha básica si corresponde
-                const entry = CODES[currentCode];
-                if (entry && entry.tipo === 'basica') applyBasicMode();
+                applyAccessLevel(currentCode);
 
                 // Registrar acceso tras aceptar NDA (excepto propietario)
+                const entry = CODES[currentCode];
                 if (currentCode && currentCode !== 'VICTOR2026') {
                     registrarAcceso(currentCode, entry ? entry.agencia : 'Desconocida');
                 }
@@ -2612,7 +2641,7 @@
 
             function tryAccess() {
                 const val = input.value.trim().toUpperCase();
-                if (CODES[val]) {
+                if (CODES[val] && CODES[val].tipo !== 'desactivado') {
                     currentCode = val;
                     showNDA();
                 } else {
@@ -2644,33 +2673,34 @@
                 errorMsg.classList.remove('show');
             });
 
-            // Bypass with URL token (for Victor / AI tools)
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('token');
-            if (token && CODES[token]) {
-                gate.classList.add('hidden');
-                document.body.classList.remove('locked');
-                if (token === 'VICTOR2026') showAdminNav();
-                if (token === 'KODISOFT2026') showInformeOnly();
-                if (CODES[token].tipo === 'basica') applyBasicMode();
-                if (token !== 'VICTOR2026') registrarAcceso(token, CODES[token].agencia);
-                return;
-            }
-
-            // If already authenticated in this session
-            if (sessionStorage.getItem('nua_access') === '1') {
-                gate.classList.add('hidden');
-                document.body.classList.remove('locked');
-                const savedCode = sessionStorage.getItem('nua_code');
-                if (savedCode === 'VICTOR2026') showAdminNav();
-                if (savedCode === 'KODISOFT2026') showInformeOnly();
-                if (sessionStorage.getItem('nua_tipo') === 'basica') applyBasicMode();
-                // Track every visit, even re-visits within the same session
-                if (savedCode && savedCode !== 'VICTOR2026') {
-                    const entry = CODES[savedCode];
-                    if (entry) registrarAcceso(savedCode, entry.agencia);
+            // Esperar a que los permisos dinámicos se carguen antes de validar
+            _codesReady.then(() => {
+                // Bypass with URL token (for Victor / AI tools)
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('token');
+                if (token && CODES[token]) {
+                    gate.classList.add('hidden');
+                    document.body.classList.remove('locked');
+                    if (token === 'VICTOR2026') showAdminNav();
+                    applyAccessLevel(token);
+                    if (token !== 'VICTOR2026') registrarAcceso(token, CODES[token].agencia);
+                    return;
                 }
-            }
+
+                // If already authenticated in this session
+                if (sessionStorage.getItem('nua_access') === '1') {
+                    gate.classList.add('hidden');
+                    document.body.classList.remove('locked');
+                    const savedCode = sessionStorage.getItem('nua_code');
+                    if (savedCode === 'VICTOR2026') showAdminNav();
+                    if (savedCode && CODES[savedCode]) applyAccessLevel(savedCode);
+                    // Track every visit, even re-visits within the same session
+                    if (savedCode && savedCode !== 'VICTOR2026') {
+                        const entry = CODES[savedCode];
+                        if (entry) registrarAcceso(savedCode, entry.agencia);
+                    }
+                }
+            });
         })();
 
         // Intersection Observer for section animations

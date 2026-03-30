@@ -52,13 +52,6 @@
         .dash-header { margin-bottom: 40px; }
         .dash-header h1 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 8px; }
         .dash-header p { color: var(--text-muted); font-size: 0.9rem; }
-        .dash-links { display: flex; gap: 12px; margin-top: 16px; }
-        .dash-links a {
-            display: inline-block; padding: 8px 16px; border-radius: 8px;
-            background: rgba(0,229,255,0.08); border: 1px solid var(--border-accent);
-            color: var(--accent-cyan); text-decoration: none; font-size: 0.82rem;
-        }
-        .dash-links a:hover { background: rgba(0,229,255,0.15); }
 
         /* KPIs */
         .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
@@ -68,7 +61,6 @@
         }
         .kpi-label { font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
         .kpi-value { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 700; color: var(--accent-cyan); }
-        .kpi-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 
         /* Table */
         .card {
@@ -93,6 +85,7 @@
         .tag-pink { background: rgba(255,71,151,0.12); color: var(--accent-gold); }
         .tag-completa { background: rgba(73,234,218,0.15); color: #49eada; }
         .tag-basica { background: rgba(255,193,7,0.15); color: #ffc107; }
+        .tag-informe { background: rgba(0,229,255,0.15); color: var(--accent-cyan); }
 
         .loading { text-align: center; padding: 40px; color: var(--text-muted); }
         .refresh-btn {
@@ -103,8 +96,28 @@
         .refresh-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
         .empty { text-align: center; padding: 40px; color: var(--text-muted); }
 
+        /* Toggle buttons */
+        .toggle-group { display: flex; gap: 4px; }
+        .toggle-btn {
+            padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);
+            background: transparent; color: var(--text-muted); font-size: 0.7rem;
+            cursor: pointer; font-weight: 500; transition: all 0.2s;
+        }
+        .toggle-btn:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+        .toggle-btn.active-basica { background: rgba(255,193,7,0.2); color: #ffc107; border-color: rgba(255,193,7,0.4); }
+        .toggle-btn.active-completa { background: rgba(73,234,218,0.2); color: #49eada; border-color: rgba(73,234,218,0.4); }
+        .toggle-btn.active-informe { background: rgba(0,229,255,0.2); color: var(--accent-cyan); border-color: rgba(0,229,255,0.4); }
+        .toggle-btn.active-desactivado { background: rgba(255,71,151,0.2); color: var(--accent-gold); border-color: rgba(255,71,151,0.4); }
+
+        .save-indicator {
+            display: inline-block; font-size: 0.7rem; color: var(--accent-green);
+            margin-left: 8px; opacity: 0; transition: opacity 0.3s;
+        }
+        .save-indicator.show { opacity: 1; }
+
         @media (max-width: 768px) {
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .toggle-group { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -150,6 +163,12 @@
             </div>
         </div>
 
+        <!-- Control de permisos -->
+        <div class="card">
+            <div class="card-title">Control de permisos</div>
+            <div id="permissionsPanel"><div class="loading">Cargando...</div></div>
+        </div>
+
         <!-- Por agencia -->
         <div class="card">
             <div class="card-title">Accesos por agencia</div>
@@ -172,19 +191,8 @@
 
         const OWNER_CODE = 'VICTOR2026';
 
-        // Mapping of codes to version type
-        const CODE_TYPES = {
-            'ENGEL2026': 'completa',
-            'HORUS2026': 'completa',
-            'JSRE2026': 'completa',
-            'DHB2026': 'basica',
-            'LM2026': 'basica',
-            'BG2026': 'basica',
-            'FCD2026': 'basica',
-            'KODISOFT2026': 'completa',
-            'TGL2026': 'basica',
-            'GG2026': 'basica'
-        };
+        // Dynamic permissions loaded from Supabase
+        let PERMISSIONS = {};
 
         // Auth
         const authGate = document.getElementById('authGate');
@@ -196,7 +204,7 @@
             if (dashCode.value.trim().toUpperCase() === OWNER_CODE) {
                 authGate.style.display = 'none';
                 dashboard.classList.add('active');
-                loadData();
+                loadAll();
             } else {
                 dashCode.style.borderColor = '#ff4797';
                 setTimeout(() => dashCode.style.borderColor = '', 500);
@@ -206,15 +214,19 @@
         dashBtn.addEventListener('click', authenticate);
         dashCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') authenticate(); });
 
-        // Auto-authenticate if coming from memorandum session
         if (sessionStorage.getItem('nua_code') === OWNER_CODE ||
             new URLSearchParams(window.location.search).get('token') === OWNER_CODE) {
             authGate.style.display = 'none';
             dashboard.classList.add('active');
+            loadAll();
+        }
+
+        function loadAll() {
+            loadPermissions();
             loadData();
         }
 
-        // Tag colors per agency
+        // Tag helpers
         function agencyTag(agencia) {
             if (agencia.includes('propietario')) return '<span class="tag tag-green">' + agencia + '</span>';
             if (agencia.includes('Horus')) return '<span class="tag tag-cyan">' + agencia + '</span>';
@@ -222,11 +234,17 @@
             return '<span class="tag tag-cyan">' + agencia + '</span>';
         }
 
-        function versionTag(codigo) {
-            const tipo = CODE_TYPES[codigo];
+        function versionTag(tipo) {
             if (!tipo) return '<span style="color:var(--text-muted);">-</span>';
             if (tipo === 'completa') return '<span class="tag tag-completa">completa</span>';
+            if (tipo === 'informe_mercado') return '<span class="tag tag-informe">informe</span>';
+            if (tipo === 'desactivado') return '<span class="tag" style="background:rgba(255,71,151,0.15);color:#ff4797;">desactivado</span>';
             return '<span class="tag tag-basica">b\u00e1sica</span>';
+        }
+
+        function versionTagByCodigo(codigo) {
+            const perm = PERMISSIONS[codigo];
+            return versionTag(perm ? perm.tipo : null);
         }
 
         function formatDate(d) {
@@ -244,6 +262,77 @@
             return min + 'min ' + secRest + 's';
         }
 
+        // ===== PERMISSIONS PANEL =====
+        async function loadPermissions() {
+            try {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/agency_permissions?select=codigo,agencia,tipo&order=agencia.asc', {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                    }
+                });
+                const rows = await res.json();
+
+                // Store in PERMISSIONS map
+                PERMISSIONS = {};
+                rows.forEach(r => { PERMISSIONS[r.codigo] = r; });
+
+                // Render table (exclude owner)
+                const agencies = rows.filter(r => r.codigo !== 'VICTOR2026');
+
+                let html = '<table><thead><tr><th>Agencia</th><th>C\u00f3digo</th><th>Nivel actual</th><th>Cambiar</th></tr></thead><tbody>';
+                agencies.forEach(a => {
+                    const tipos = ['basica', 'completa', 'informe_mercado', 'desactivado'];
+                    const labels = ['B\u00e1sica', 'Completa', 'Informe', 'Off'];
+                    let toggles = '<div class="toggle-group">';
+                    tipos.forEach((t, i) => {
+                        const active = a.tipo === t ? ' active-' + t : '';
+                        toggles += '<button class="toggle-btn' + active + '" onclick="updatePermission(\'' + a.codigo + '\', \'' + t + '\', this)">' + labels[i] + '</button>';
+                    });
+                    toggles += '<span class="save-indicator" id="save-' + a.codigo + '">\u2713 Guardado</span></div>';
+
+                    html += '<tr><td>' + agencyTag(a.agencia) + '</td><td style="font-size:0.75rem;color:var(--text-muted);">' + a.codigo + '</td><td>' + versionTag(a.tipo) + '</td><td>' + toggles + '</td></tr>';
+                });
+                html += '</tbody></table>';
+                document.getElementById('permissionsPanel').innerHTML = html;
+
+            } catch (e) {
+                document.getElementById('permissionsPanel').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+            }
+        }
+
+        async function updatePermission(codigo, newTipo, btnEl) {
+            try {
+                const res = await fetch(
+                    SUPABASE_URL + '/rest/v1/agency_permissions?codigo=eq.' + codigo,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({ tipo: newTipo, updated_at: new Date().toISOString() })
+                    }
+                );
+
+                if (res.ok) {
+                    // Show saved indicator
+                    const indicator = document.getElementById('save-' + codigo);
+                    if (indicator) {
+                        indicator.classList.add('show');
+                        setTimeout(() => indicator.classList.remove('show'), 2000);
+                    }
+                    // Reload permissions panel
+                    await loadPermissions();
+                }
+            } catch (e) {
+                console.error('Error updating permission:', e);
+            }
+        }
+
+        // ===== ACCESS LOG =====
         async function loadData() {
             try {
                 const res = await fetch(SUPABASE_URL + '/rest/v1/accesos_memorandum?order=fecha.desc&limit=200', {
@@ -254,8 +343,7 @@
                 });
                 const data = await res.json();
 
-                // Separate access records from duration records
-                const accesos = data.filter(d => d.tipo !== 'duracion');
+                const accesos = data.filter(d => d.tipo !== 'duracion' && d.tipo !== 'heartbeat');
                 const duraciones = data.filter(d => d.tipo === 'duracion');
 
                 if (!data || data.length === 0) {
@@ -268,7 +356,7 @@
                     return;
                 }
 
-                // KPIs - based on access records only
+                // KPIs
                 const total = accesos.length;
                 const agencias = [...new Set(accesos.map(d => d.agencia).filter(a => a && !a.includes('propietario')))];
                 const hoy = new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' });
@@ -284,7 +372,7 @@
                 }
                 document.getElementById('accesosHoy').textContent = accesosHoy;
 
-                // Build a map of durations by code+approximate time for matching
+                // Duration map
                 const duracionMap = {};
                 duraciones.forEach(d => {
                     const key = d.codigo;
@@ -292,7 +380,7 @@
                     duracionMap[key].push(d);
                 });
 
-                // Stats por agencia (excluyendo propietario)
+                // Stats por agencia
                 const stats = {};
                 accesos.forEach(d => {
                     if (!d.agencia) return;
@@ -305,23 +393,21 @@
                     .filter(([k]) => !k.includes('propietario'))
                     .sort((a, b) => b[1].count - a[1].count)
                     .forEach(([agencia, info]) => {
-                        statsHtml += '<tr><td>' + agencyTag(agencia) + '</td><td>' + versionTag(info.codigo) + '</td><td><strong>' + info.count + '</strong></td><td>' + formatDate(info.last) + '</td></tr>';
+                        statsHtml += '<tr><td>' + agencyTag(agencia) + '</td><td>' + versionTagByCodigo(info.codigo) + '</td><td><strong>' + info.count + '</strong></td><td>' + formatDate(info.last) + '</td></tr>';
                     });
                 statsHtml += '</tbody></table>';
                 document.getElementById('agenciaStats').innerHTML = Object.keys(stats).filter(k => !k.includes('propietario')).length ? statsHtml : '<div class="empty">Ninguna agencia ha accedido todav\u00eda</div>';
 
-                // Find closest duration for an access record
+                // Find duration
                 function findDuracion(acceso) {
                     const codeDurs = duracionMap[acceso.codigo];
                     if (!codeDurs || codeDurs.length === 0) return null;
                     const accesoTime = new Date(acceso.fecha).getTime();
-                    // Find duration record closest to (and after) the access
                     let best = null;
                     let bestDiff = Infinity;
                     codeDurs.forEach(dur => {
                         const durTime = new Date(dur.fecha).getTime();
                         const diff = durTime - accesoTime;
-                        // Duration should be after or near access time, within 24h
                         if (diff >= -60000 && diff < 86400000 && diff < bestDiff) {
                             bestDiff = diff;
                             best = dur;
@@ -330,12 +416,12 @@
                     return best;
                 }
 
-                // Log completo
+                // Log
                 let logHtml = '<table><thead><tr><th>Fecha y hora</th><th>Agencia</th><th>Versi\u00f3n</th><th>Duraci\u00f3n</th><th>C\u00f3digo</th><th>Dispositivo</th><th>IP</th></tr></thead><tbody>';
                 accesos.forEach(d => {
                     const dur = findDuracion(d);
                     const durText = dur ? formatDuracion(dur) : '-';
-                    logHtml += '<tr><td>' + formatDate(d.fecha) + '</td><td>' + agencyTag(d.agencia || '-') + '</td><td>' + versionTag(d.codigo) + '</td><td>' + durText + '</td><td>' + (d.codigo || '-') + '</td><td>' + (d.dispositivo || '-') + '</td><td>' + (d.ip || '-') + '</td></tr>';
+                    logHtml += '<tr><td>' + formatDate(d.fecha) + '</td><td>' + agencyTag(d.agencia || '-') + '</td><td>' + versionTagByCodigo(d.codigo) + '</td><td>' + durText + '</td><td>' + (d.codigo || '-') + '</td><td>' + (d.dispositivo || '-') + '</td><td>' + (d.ip || '-') + '</td></tr>';
                 });
                 logHtml += '</tbody></table>';
                 document.getElementById('accessLog').innerHTML = logHtml;
