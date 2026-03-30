@@ -275,7 +275,12 @@
 
                 document.getElementById('totalAccesos').textContent = total;
                 document.getElementById('agenciasUnicas').textContent = agencias.length;
-                document.getElementById('ultimoAcceso').textContent = accesos.length ? formatDate(accesos[0].fecha) : '-';
+                if (accesos.length) {
+                    const ultimo = accesos[0];
+                    document.getElementById('ultimoAcceso').innerHTML = '<span style="color:var(--accent-cyan);font-size:0.85rem;display:block;">' + (ultimo.agencia || '-') + '</span>' + formatDate(ultimo.fecha);
+                } else {
+                    document.getElementById('ultimoAcceso').textContent = '-';
+                }
                 document.getElementById('accesosHoy').textContent = accesosHoy;
 
                 // Build a map of durations by code+approximate time for matching

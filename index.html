@@ -2516,12 +2516,20 @@
                 try {
                     let ip = 'desconocida';
                     try {
-                        const ipRes = await fetch('https://api.ipify.org?format=json');
+                        const ipRes = await fetch('https://api.ipify.org?format=json', { timeout: 3000 });
                         const ipData = await ipRes.json();
                         ip = ipData.ip;
-                    } catch (e) {}
+                    } catch (e) {
+                        try {
+                            const ipRes2 = await fetch('https://api64.ipify.org?format=json', { timeout: 3000 });
+                            const ipData2 = await ipRes2.json();
+                            ip = ipData2.ip;
+                        } catch (e2) {}
+                    }
 
                     const dispositivo = window.innerWidth < 768 ? 'mobile' : 'desktop';
+                    const entry = CODES[codigo];
+                    const version = entry ? entry.tipo : 'desconocida';
 
                     await fetch(TRACKING_URL, {
                         method: 'POST',
@@ -2531,6 +2539,7 @@
                             agencia: agencia,
                             ip: ip,
                             dispositivo: dispositivo,
+                            version: version,
                             user_agent: navigator.userAgent,
                             pantalla: screen.width + 'x' + screen.height,
                             pagina: window.location.pathname
